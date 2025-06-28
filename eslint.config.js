@@ -32,6 +32,7 @@ export default tseslint.config([
        */
       '@typescript-eslint/no-explicit-any': 'off', // 使用any报错
       '@typescript-eslint/no-unused-vars': 'warn', // 定义未使用报错
+      '@typescript-eslint/no-unused-expressions': 'off',
     },
   },
 ])

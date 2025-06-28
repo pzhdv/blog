@@ -10,8 +10,8 @@ export default defineConfig(({ command, mode }: ConfigEnv) => {
   console.log('command', command)
   console.log('mode', mode)
   const env = loadEnv(mode, process.cwd()) // 环境变量对象
-  const { VITE_API_BASE_URL } = env //不同模式中取值
-  console.log('VITE_API_BASE_URL', VITE_API_BASE_URL)
+  // const { VITE_API_BASE_URL } = env //不同模式中取值
+  // console.log('VITE_API_BASE_URL', VITE_API_BASE_URL)
   return {
     plugins: [react(), tailwindcss()],
     server: {
