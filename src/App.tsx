@@ -8,7 +8,7 @@ function App() {
   return (
     <GlobalErrorBoundary showStackTrace={import.meta.env.DEV}>
       <ThemeProvider>
-        <RouterProvider router={routes} />
+        <RouterProvider router={routes} future={{ v7_startTransition: true }} />
       </ThemeProvider>
     </GlobalErrorBoundary>
   )

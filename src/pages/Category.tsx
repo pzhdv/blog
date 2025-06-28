@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { InfiniteScroll } from 'antd-mobile'
 
 import useDeviceType from '@/hooks/useDeviceType'
 
@@ -11,12 +12,17 @@ import {
 import type {
   Article,
   ArticleCategory,
-  CategoryPageQueryArticleListParams,
+  CategoryPageQueryArticleListParams as QueryParams,
 } from '@/types'
 
 import IconFont from '@/components/IconFont'
 
+import { deduplicateArticles } from '@/utils/ArrayUtils'
+
 const ROOT_CATEGORY_ID = 1 // 树根节点id为1 查询分类列表不需要查出树根
+const PC_PageSize = 4 //PC端默认页大小
+const Mobile_PageSize = 4 //移动端默认页大小
+
 export default function BlogCategoryPage() {
   const isMobile = useDeviceType()
   const navigate = useNavigate()
@@ -32,15 +38,23 @@ export default function BlogCategoryPage() {
   >({}) // 展开/折叠的分类
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null) // 激活的分类id 高亮
   const [articleList, setArticleList] = useState<Article[]>([]) // 文章数据
-  const [queryParams, setQueryParams] =
-    useState<CategoryPageQueryArticleListParams>({
-      pageSize: 2,
-      pageNum: 1,
-      categoryIds: [], // 点击的分类id列表 包含子分类
-    }) // 文章列表
+  const [queryParams, setQueryParams] = useState<QueryParams>({
+    pageSize: 2,
+    pageNum: 1,
+    categoryIds: [], // 点击的分类id列表 包含子分类
+  }) // 文章列表
   const [totalPage, setTotalPage] = useState<number>(0) // 总分页数
   const [currentPage, setCurrentPage] = useState<number>(0) // 当前页码
+  const [loading, setLoading] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
 
+  // 设置页大小 根据不同设备端
+  useEffect(() => {
+    const pageSize = isMobile ? Mobile_PageSize : PC_PageSize
+    setQueryParams(pre => ({ ...pre, pageSize }))
+  }, [isMobile])
+
+  // 处理分类树默认展开折叠 PC - 全部展开  Mobile - 全部折叠
   useEffect(() => {
     const handleCategoriesExpansion = () => {
       if (isMobile) {
@@ -69,6 +83,7 @@ export default function BlogCategoryPage() {
     handleCategoriesExpansion()
   }, [isMobile, articleCategoryList])
 
+  // 查询分类树 数据
   useEffect(() => {
     const searchCategoryListWithArticleCount = async () => {
       try {
@@ -93,19 +108,41 @@ export default function BlogCategoryPage() {
     searchCategoryListWithArticleCount()
   }, [])
 
+  // 查询文章列表
   useEffect(() => {
     const getArticleList = async () => {
       try {
         const res = await queryCategoryPageArticleList(queryParams)
+        // 更新总页数和当前页
         setTotalPage(res.data.pages)
-        setArticleList(res.data.records)
         setCurrentPage(res.data.current)
+        if (isMobile) {
+          //刷新或初始化查询
+          if (queryParams.pageNum === 1) {
+            setArticleList(res.data.records)
+          } else {
+            // 追加新数据
+            // setArticleList(pre => [...pre, ...res.data.records])
+            setArticleList(pre => {
+              const newArticles = res.data.records || []
+              const uniqueArticles = deduplicateArticles(pre, newArticles)
+              return uniqueArticles
+            })
+          }
+          // 判断是否还有更多数据
+          setHasMore(res.data.current < res.data.pages)
+        } else {
+          // PC端
+          setArticleList(res.data.records)
+        }
       } catch (error) {
         console.error('queryArticleList:', error)
+      } finally {
+        setLoading(false)
       }
     }
     getArticleList()
-  }, [queryParams])
+  }, [isMobile, queryParams])
 
   // 将树形结构的分类数据转换为扁平化的列表数据
   const treeDataToListData = (
@@ -195,8 +232,18 @@ export default function BlogCategoryPage() {
     setQueryParams(pre => ({ ...pre, categoryIds, pageNum: 1 }))
   }
 
-  // 加载更多
-  const loadMore = () => {}
+  //  ! 上拉加载更多事件
+  const handleLoadMore = async () => {
+    if (loading) return
+    console.log('上拉加载更多')
+    setLoading(true)
+    if (!loading && hasMore) {
+      setQueryParams(prev => ({
+        ...prev,
+        pageNum: prev.pageNum + 1,
+      }))
+    }
+  }
 
   // !跳转文章详情
   const toDetailPage = (articleId: number) => {
@@ -494,20 +541,6 @@ export default function BlogCategoryPage() {
     )
   }
 
-  // 移动端端分页按钮组件
-  const renderMobilePagination = () => {
-    return (
-      <div className=" mt-6 flex items-center justify-center">
-        <button
-          onClick={() => loadMore()}
-          className="p-4 px-6 rounded-lg transition-colors bg-purple-600 text-white"
-        >
-          加载更多
-        </button>
-      </div>
-    )
-  }
-
   return (
     <div className="md:flex md:gap-8 max-w-7xl mx-auto px-4 py-6">
       {/* 分类侧边栏 */}
@@ -520,8 +553,17 @@ export default function BlogCategoryPage() {
 
         {/* 文章列表 */}
         {renderArticleList()}
-        {/* 分页 */}
-        {isMobile ? renderMobilePagination() : renderPcPagination()}
+
+        {/* 分页 移动端下拉加载更多 pc端显示分页按钮*/}
+        {isMobile ? (
+          <InfiniteScroll
+            loadMore={handleLoadMore}
+            hasMore={hasMore}
+            threshold={50}
+          />
+        ) : (
+          renderPcPagination()
+        )}
       </div>
     </div>
   )

@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import BScroll from '@better-scroll/core'
-import PullUp from '@better-scroll/pull-up'
-import PullDown from '@better-scroll/pull-down'
+import { InfiniteScroll } from 'antd-mobile'
 
 import useDeviceType from '@/hooks/useDeviceType'
 
@@ -19,17 +17,16 @@ import type {
   ArticleTag,
   Article,
   BlogAuthor,
-  HomePageQueryArticleListParams,
+  HomePageQueryArticleListParams as QueryParams,
 } from '@/types'
 
 import BlogCalendar from '@/components/BlogCalendar'
 
-const PC_PageSize = 4 //PC端默认页大小
-const Mobile_PageSize = 2 //移动端默认页大小
-export default function BlogHomepage() {
-  BScroll.use(PullUp)
-  BScroll.use(PullDown)
+import { deduplicateArticles } from '@/utils/ArrayUtils'
 
+const PC_PageSize = 4 //PC端默认页大小
+const Mobile_PageSize = 4 //移动端默认页大小
+export default function BlogHomepage() {
   const isMobile = useDeviceType()
   const navigate = useNavigate()
   const [blogAuthor, setBlogAuthor] = useState<BlogAuthor | null>(null) // 作者个人信息
@@ -43,26 +40,12 @@ export default function BlogHomepage() {
   const [articleList, setArticleList] = useState<Article[]>([]) // 文章列表
   const [totalPage, setTotalPage] = useState<number>(0) // 总分页数
   const [currentPage, setCurrentPage] = useState<number>(0) // 当前页码
-  const [queryParams, setQueryParams] =
-    useState<HomePageQueryArticleListParams>({
-      pageSize: PC_PageSize,
-      pageNum: 1,
-    }) // 查询参数对象
+  const [queryParams, setQueryParams] = useState<QueryParams>({
+    pageSize: PC_PageSize,
+    pageNum: 1,
+  }) // 查询参数对象
   const [loading, setLoading] = useState(false)
-  const [refresh, setRefresh] = useState(false)
   const [hasMore, setHasMore] = useState(true)
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const bsRef = useRef<BScroll | null>(null) // 用于存储 BetterScroll 实例
-
-  //  ! 上拉加载更多
-  const handleLoadMore = useCallback(() => {
-    if (!loading && hasMore) {
-      setQueryParams(prev => ({
-        ...prev,
-        pageNum: prev.pageNum + 1,
-      }))
-    }
-  }, [hasMore, loading])
 
   // 设置页大小 根据不同设备端
   useEffect(() => {
@@ -133,7 +116,6 @@ export default function BlogHomepage() {
       try {
         console.log('查询文章列表')
         const res = await queryHomePageArticleList(queryParams)
-
         // 更新总页数和当前页
         setTotalPage(res.data.pages)
         setCurrentPage(res.data.current)
@@ -143,107 +125,27 @@ export default function BlogHomepage() {
             setArticleList(res.data.records)
           } else {
             // 追加新数据
-            setArticleList(pre => [...pre, ...res.data.records])
+            // setArticleList(pre => [...pre, ...res.data.records])
+            setArticleList(pre => {
+              const newArticles = res.data.records || []
+              const uniqueArticles = deduplicateArticles(pre, newArticles)
+              return uniqueArticles
+            })
           }
-
           // 判断是否还有更多数据
           setHasMore(res.data.current < res.data.pages)
         } else {
+          // PC端
           setArticleList(res.data.records)
         }
       } catch (error) {
         console.error('queryHomePageArticleList:', error)
       } finally {
         setLoading(false)
-        setRefresh(false)
-        // 如果当前是下拉刷新状态，调用 BetterScroll 的 finishPullDown 方法结束刷新
-        if (refresh && bsRef.current) {
-          bsRef.current.finishPullDown()
-        }
       }
     }
     getArticleList()
-  }, [queryParams, isMobile, refresh])
-
-  // 上拉加载 下拉刷新处理 移动端
-  useEffect(() => {
-    if (!isMobile) return // pc端不需要
-    if (!scrollRef.current) return // 滚动容器不存在
-
-    const bs = new BScroll(scrollRef.current, {
-      scrollY: true,
-      pullUpLoad: {
-        threshold: 50, // 上拉距离超过50px触发加载
-      },
-      pullDownRefresh: {
-        threshold: 50, // 下拉距离超过50px触发刷新
-        stop: 20, // 刷新动作完成后，回弹的距离
-      },
-      click: true, // 允许点击
-    })
-
-    bsRef.current = bs // 保存 BetterScroll 实例
-
-    // 上拉加载
-    bs.on('pullingUp', () => {
-      // 正在加载或者没有更多数据
-      if (loading || !hasMore) {
-        bs.finishPullUp() // 结束上拉加载
-        return
-      }
-      setLoading(true)
-      setTimeout(() => {
-        handleLoadMore()
-      }, 1000)
-    })
-
-    // 下拉刷新
-    bs.on('pullingDown', () => {
-      if (refresh) return
-      setRefresh(true)
-      setTimeout(() => {
-        // 查询完毕后会调用 BetterScroll 的 finishPullDown 方法结束刷新
-        setQueryParams(pre => ({ ...pre, pageNum: 1 })) // 调用接口查询数据
-      }, 1000)
-    })
-
-    return () => {
-      if (bsRef.current) {
-        // 销毁实列
-        bsRef.current.destroy()
-        bsRef.current = null
-      }
-    }
-  }, [isMobile, hasMore, loading, refresh, handleLoadMore])
-
-  // 数据更新后重新计算滚动区域 否则不能滚动
-  useEffect(() => {
-    if (bsRef.current) {
-      bsRef.current.refresh() // 数据更新后重新计算滚动区域
-    }
-  }, [articleList])
-
-  // 动态计算内容区域高度 移动端
-  useEffect(() => {
-    if (!isMobile) return // pc端不需要
-
-    const updateHeight = () => {
-      const navHeight = document.querySelector('nav')?.clientHeight || 0
-      // const footerHeight = document.querySelector('footer')?.clientHeight || 0
-      const footerHeight = 0
-      const windowHeight = window.innerHeight // 窗体高度
-      const paddingTop = 2 * 16 // pt-8 对应 2rem，1rem = 16px
-      const paddingBottom = 0.5 * 16 // pb-2 对应 0.5rem，1rem = 16px
-      const contentHeight =
-        windowHeight - navHeight - footerHeight - paddingTop - paddingBottom
-      if (scrollRef.current) {
-        // 设置容器高度和层级
-        scrollRef.current.style.height = `${contentHeight}px`
-      }
-    }
-
-    updateHeight()
-  }, [isMobile])
+  }, [isMobile, queryParams])
 
   // ! 日期组件日期点击事件
   const onDayClick = (publishDateStr: string) => {
@@ -265,6 +167,19 @@ export default function BlogHomepage() {
   // ! 分页按钮被被点击
   const handlePageButtonClick = (pageNum: number) => {
     setQueryParams(pre => ({ ...pre, pageNum }))
+  }
+
+  //  ! 上拉加载更多
+  const handleLoadMore = async () => {
+    if (loading) return
+    console.log('上拉加载更多')
+    setLoading(true)
+    if (!loading && hasMore) {
+      setQueryParams(prev => ({
+        ...prev,
+        pageNum: prev.pageNum + 1,
+      }))
+    }
   }
 
   // 渲染PC端分页按钮组件
@@ -350,51 +265,13 @@ export default function BlogHomepage() {
       </div>
     )
   }
-  // 渲染移动端加载更多提示
-  const renderMobileRefresh = () => {
-    return (
-      <>
-        {refresh && (
-          <div className="flex justify-center items-center py-6">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-            <span className="ml-2 text-sm text-gray-500">加载中...</span>
-          </div>
-        )}
-      </>
-    )
-  }
-  // 渲染移动端加载更多提示
-  const renderMobilePagination = () => {
-    return (
-      <>
-        {/* 加载状态 */}
-        {loading && (
-          <div className="flex justify-center items-center py-6">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-            <span className="ml-2 text-sm text-gray-500">加载中...</span>
-          </div>
-        )}
-
-        {/* 没有更多数据提示 */}
-        {!loading && !hasMore && currentPage > 1 && (
-          <div className="text-center py-6 text-gray-500 text-sm">
-            <div className="flex items-center justify-center">
-              <span className="w-8 h-px bg-gray-300 mr-2"></span>
-              <span>已经到底啦</span>
-              <span className="w-8 h-px bg-gray-300 ml-2"></span>
-            </div>
-          </div>
-        )}
-      </>
-    )
-  }
 
   return (
-    <div className="grid md:grid-cols-3 gap-8" ref={scrollRef}>
+    <div className="grid md:grid-cols-3 gap-8">
       {/* 文章列表 - col-span-2:占父盒子大小2份布局 */}
       <div className="md:col-span-2 ">
         {/* 下拉刷新状态 */}
-        {isMobile && renderMobileRefresh()}
+        {/* {isMobile && renderMobileRefresh()} */}
         {/* 空列表显示 */}
         {articleList.length === 0 && (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">
@@ -451,8 +328,16 @@ export default function BlogHomepage() {
             </article>
           ))}
         </div>
-        {/* pc端分页按钮 移动端上拉提示 */}
-        {isMobile ? renderMobilePagination() : renderPcPagination()}
+        {/* 分页 移动端下拉加载更多 pc端显示分页按钮*/}
+        {isMobile ? (
+          <InfiniteScroll
+            loadMore={handleLoadMore}
+            hasMore={hasMore}
+            threshold={50}
+          />
+        ) : (
+          renderPcPagination()
+        )}
       </div>
 
       {/* 侧边栏  col-span-2:占父盒子大小1份布局*/}
