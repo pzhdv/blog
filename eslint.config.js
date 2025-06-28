@@ -9,7 +9,7 @@ export default tseslint.config([
   globalIgnores([
     'dist', // 构建输出目录 忽略整个 dist 目录及其目录下所有内容
     'node_modules', // Node.js 依赖项
-    'assets/fonts', // 不需要检查的字体资源
+    '**/assets/fonts/**', // 不需要检查的字体资源
   ]),
   {
     files: ['**/*.{js,ts,tsx,jsx}'], // 指定 ESLint 检查的文件

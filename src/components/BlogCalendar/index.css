@@ -1,0 +1,23 @@
+.react-calendar {
+  @apply rounded-lg overflow-hidden;
+}
+
+.react-calendar__navigation {
+  @apply flex items-center justify-between mb-4 px-1;
+}
+
+.react-calendar__navigation button:disabled {
+  @apply bg-opacity-20 cursor-default;
+}
+
+.react-calendar__month-view__weekdays {
+  @apply text-sm font-medium mb-2;
+}
+
+.react-calendar__month-view__weekdays abbr {
+  @apply no-underline;
+}
+
+.react-calendar__tile--now {
+  @apply font-bold;
+}
