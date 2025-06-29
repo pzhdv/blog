@@ -48,26 +48,26 @@ export default function AboutPage() {
         setBlogAuthor(res.data)
         const contactMethods = [
           {
-            name: 'Email',
-            value: res.data.email,
-            iconClass: 'iconfont icon-email',
-          },
-          {
-            name: 'Website',
-            value: res.data.website,
-            iconClass: 'iconfont icon-website',
-            url: res.data.website,
-          },
-          {
             name: 'GitHub',
             value: res.data.github,
             iconClass: 'iconfont icon-github',
             url: res.data.github,
           },
           {
+            name: 'Email',
+            value: res.data.email,
+            iconClass: 'iconfont icon-email',
+          },
+          {
             name: 'Phone',
             value: res.data.phone,
             iconClass: 'iconfont icon-phone',
+          },
+          {
+            name: 'Website',
+            value: res.data.website,
+            iconClass: 'iconfont icon-website',
+            url: res.data.website,
           },
         ]
         setContactMethodList(contactMethods)
@@ -122,6 +122,7 @@ export default function AboutPage() {
     getJobExperienceList()
   }, [])
 
+  // 渲染联系卡片
   const renderContactCard = () => {
     return (
       <div className="p-6 rounded-2xl bg-white dark:bg-gray-800 shadow-lg transition-colors">

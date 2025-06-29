@@ -52,13 +52,13 @@ class GlobalErrorBoundary extends Component<
 
     return (
       <div className="fixed inset-0 bg-gray-100 flex items-center justify-center p-4 z-50">
-        <div className="w-full max-w-2xl bg-white rounded-xl shadow-xl overflow-hidden">
+        <div className="w-full max-w-2xl bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200">
           {/* 错误标题区 */}
           <div className="bg-red-500 p-4 text-white">
             <div className="flex items-center gap-3">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-8 w-8"
+                className="h-8 w-8 animate-pulse"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -70,15 +70,22 @@ class GlobalErrorBoundary extends Component<
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
                 />
               </svg>
-              <h1 className="text-xl font-bold">应用程序发生错误</h1>
+              <h1 className="text-xl font-bold animate-fadeIn">
+                应用程序发生错误
+              </h1>
             </div>
           </div>
 
           {/* 错误内容区 */}
-          <div className="p-6 space-y-4">
+          <div className="p-6 space-y-4 animate-fadeIn">
             <p className="text-gray-700">
-              抱歉，遇到了一些问题。您可以尝试刷新页面或联系支持团队。
+              抱歉，遇到了一些问题。您可以尝试以下操作：
             </p>
+            <ul className="list-disc list-inside text-gray-600">
+              <li>刷新页面</li>
+              <li>返回首页</li>
+              <li>联系支持团队</li>
+            </ul>
 
             {this.props.showStackTrace && (
               <details className="border rounded-lg overflow-hidden">

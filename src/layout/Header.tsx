@@ -73,15 +73,13 @@ export default function Header() {
                   key={item.link}
                   to={item.link}
                   className={({ isActive }) => `
-                   text-md
-               relative py-2
-               transition-colors duration-300
-               ${
-                 isActive
-                   ? 'text-blue-600 dark:text-blue-400 font-medium'
-                   : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
-               }
-             `}
+                   text-md relative py-2 transition-colors duration-300
+                    ${
+                      isActive
+                        ? 'text-blue-600 dark:text-blue-400 font-medium'
+                        : 'text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200'
+                    }
+                  `}
                 >
                   {({ isActive }) => (
                     <div className="relative group">
@@ -91,27 +89,10 @@ export default function Header() {
 
                       {/* 动态下划线 (自动适配暗黑模式) */}
                       <span
-                        className={`
-               absolute bottom-0 left-0 w-full h-[2px]
-               origin-center scale-x-0
-               bg-gradient-to-r from-blue-400 to-purple-500
-               dark:from-blue-500 dark:to-purple-600
-               transition-transform duration-300
-               ${isActive ? 'scale-x-105' : 'group-hover:scale-x-105'}
-             `}
+                        className={` absolute bottom-0 left-0 w-full h-[2px] origin-center scale-x-0 bg-gradient-to-r from-blue-400 to-purple-500 dark:from-blue-500 dark:to-purple-600 transition-transform duration-300
+                        ${isActive ? 'scale-x-105' : 'group-hover:scale-x-105'}
+                      `}
                       />
-
-                      {/* 激活状态背景 (自动适配暗黑模式) */}
-                      {isActive && (
-                        <span
-                          className="
-               absolute -inset-2 -z-10 rounded-lg
-               bg-gradient-to-br from-blue-50/40 to-purple-50/40
-               dark:from-blue-900/30 dark:to-purple-900/30
-               animate-pulse-opacity
-             "
-                        />
-                      )}
                     </div>
                   )}
                 </NavLink>
