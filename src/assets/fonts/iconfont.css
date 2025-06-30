@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 2578686 */
-  src: url('iconfont.woff2?t=1750996366827') format('woff2'),
-       url('iconfont.woff?t=1750996366827') format('woff'),
-       url('iconfont.ttf?t=1750996366827') format('truetype');
+  src: url('iconfont.woff2?t=1751293191035') format('woff2'),
+       url('iconfont.woff?t=1751293191035') format('woff'),
+       url('iconfont.ttf?t=1751293191035') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,66 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-shujujiegou:before {
+  content: "\e734";
+}
+
+.icon-meishi:before {
+  content: "\e60c";
+}
+
+.icon-lvyou:before {
+  content: "\e601";
+}
+
+.icon-Vue:before {
+  content: "\e799";
+}
+
+.icon-React:before {
+  content: "\e79a";
+}
+
+.icon-xiaochengxu:before {
+  content: "\e63a";
+}
+
+.icon-houduankaifa:before {
+  content: "\e64a";
+}
+
+.icon-java:before {
+  content: "\e639";
+}
+
+.icon-js:before {
+  content: "\e60e";
+}
+
+.icon-life:before {
+  content: "\e7c0";
+}
+
+.icon-shujuku:before {
+  content: "\e997";
+}
+
+.icon-css:before {
+  content: "\e618";
+}
+
+.icon-diannao:before {
+  content: "\e603";
+}
+
+.icon-caozuoxitong:before {
+  content: "\e686";
+}
+
+.icon-a-wangluojisuanjizaixianjisuanjiwangluojisuanji:before {
+  content: "\e7c4";
 }
 
 .icon-fuzhi:before {
@@ -25,10 +85,6 @@
   content: "\e666";
 }
 
-.icon-zhiweimoban:before {
-  content: "\eabf";
-}
-
 .icon-nianling:before {
   content: "\e6bb";
 }
@@ -39,14 +95,6 @@
 
 .icon-xuexiao:before {
   content: "\e64f";
-}
-
-.icon-shijianriqi:before {
-  content: "\e671";
-}
-
-.icon-fanhui:before {
-  content: "\e651";
 }
 
 .icon-user:before {
@@ -69,40 +117,8 @@
   content: "\e602";
 }
 
-.icon-react:before {
-  content: "\e64b";
-}
-
-.icon-zu:before {
-  content: "\e63b";
-}
-
-.icon-java:before {
-  content: "\e6e0";
-}
-
-.icon-nodejs-alt:before {
-  content: "\e703";
-}
-
-.icon-biji:before {
-  content: "\e600";
-}
-
-.icon-fengjing:before {
-  content: "\e60e";
-}
-
 .icon-Webkaifa:before {
   content: "\e6b5";
-}
-
-.icon-vuejs:before {
-  content: "\ec2c";
-}
-
-.icon-houduankaifa1:before {
-  content: "\e601";
 }
 
 .icon-anjishufenlei:before {

@@ -12,7 +12,7 @@ import remarkGfm from 'remark-gfm'
 import rehypeExternalLinks from 'rehype-external-links'
 import { useTheme } from '@/context/ThemeContext'
 import IconFont from '../IconFont'
-// npm i react-markdown react-syntax-highlighter remark-gfm rehype-external-links lucide-react rehype-raw
+// npm i react-markdown react-syntax-highlighter remark-gfm rehype-external-links rehype-raw
 // npm i -D @types/react-syntax-highlighter
 interface MarkdownRendererProps {
   content: string

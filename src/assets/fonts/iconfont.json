@@ -6,6 +6,111 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "39349036",
+      "name": "数据结构",
+      "font_class": "shujujiegou",
+      "unicode": "e734",
+      "unicode_decimal": 59188
+    },
+    {
+      "icon_id": "749787",
+      "name": "美食",
+      "font_class": "meishi",
+      "unicode": "e60c",
+      "unicode_decimal": 58892
+    },
+    {
+      "icon_id": "1505555",
+      "name": "旅游",
+      "font_class": "lvyou",
+      "unicode": "e601",
+      "unicode_decimal": 58881
+    },
+    {
+      "icon_id": "6496026",
+      "name": "Vue",
+      "font_class": "Vue",
+      "unicode": "e799",
+      "unicode_decimal": 59289
+    },
+    {
+      "icon_id": "6496027",
+      "name": "React",
+      "font_class": "React",
+      "unicode": "e79a",
+      "unicode_decimal": 59290
+    },
+    {
+      "icon_id": "10905663",
+      "name": "小程序 (1)",
+      "font_class": "xiaochengxu",
+      "unicode": "e63a",
+      "unicode_decimal": 58938
+    },
+    {
+      "icon_id": "11662023",
+      "name": "后端开发",
+      "font_class": "houduankaifa",
+      "unicode": "e64a",
+      "unicode_decimal": 58954
+    },
+    {
+      "icon_id": "12600749",
+      "name": "java",
+      "font_class": "java",
+      "unicode": "e639",
+      "unicode_decimal": 58937
+    },
+    {
+      "icon_id": "13474473",
+      "name": "js",
+      "font_class": "js",
+      "unicode": "e60e",
+      "unicode_decimal": 58894
+    },
+    {
+      "icon_id": "14341992",
+      "name": "life",
+      "font_class": "life",
+      "unicode": "e7c0",
+      "unicode_decimal": 59328
+    },
+    {
+      "icon_id": "18267958",
+      "name": "数据库",
+      "font_class": "shujuku",
+      "unicode": "e997",
+      "unicode_decimal": 59799
+    },
+    {
+      "icon_id": "19035877",
+      "name": "css",
+      "font_class": "css",
+      "unicode": "e618",
+      "unicode_decimal": 58904
+    },
+    {
+      "icon_id": "3865264",
+      "name": "电脑",
+      "font_class": "diannao",
+      "unicode": "e603",
+      "unicode_decimal": 58883
+    },
+    {
+      "icon_id": "21053808",
+      "name": "操作系统",
+      "font_class": "caozuoxitong",
+      "unicode": "e686",
+      "unicode_decimal": 59014
+    },
+    {
+      "icon_id": "39694297",
+      "name": "网络计算机",
+      "font_class": "a-wangluojisuanjizaixianjisuanjiwangluojisuanji",
+      "unicode": "e7c4",
+      "unicode_decimal": 59332
+    },
+    {
       "icon_id": "25964417",
       "name": "复制",
       "font_class": "fuzhi",
@@ -27,13 +132,6 @@
       "unicode_decimal": 58982
     },
     {
-      "icon_id": "15660382",
-      "name": "职位模版",
-      "font_class": "zhiweimoban",
-      "unicode": "eabf",
-      "unicode_decimal": 60095
-    },
-    {
       "icon_id": "2129598",
       "name": "年龄",
       "font_class": "nianling",
@@ -53,20 +151,6 @@
       "font_class": "xuexiao",
       "unicode": "e64f",
       "unicode_decimal": 58959
-    },
-    {
-      "icon_id": "5288594",
-      "name": "时间日期",
-      "font_class": "shijianriqi",
-      "unicode": "e671",
-      "unicode_decimal": 58993
-    },
-    {
-      "icon_id": "8090619",
-      "name": "返回",
-      "font_class": "fanhui",
-      "unicode": "e651",
-      "unicode_decimal": 58961
     },
     {
       "icon_id": "4766293",
@@ -104,67 +188,11 @@
       "unicode_decimal": 58882
     },
     {
-      "icon_id": "3876384",
-      "name": "react",
-      "font_class": "react",
-      "unicode": "e64b",
-      "unicode_decimal": 58955
-    },
-    {
-      "icon_id": "9867760",
-      "name": "组 711",
-      "font_class": "zu",
-      "unicode": "e63b",
-      "unicode_decimal": 58939
-    },
-    {
-      "icon_id": "11992918",
-      "name": "java",
-      "font_class": "java",
-      "unicode": "e6e0",
-      "unicode_decimal": 59104
-    },
-    {
-      "icon_id": "15188490",
-      "name": "nodejs-alt",
-      "font_class": "nodejs-alt",
-      "unicode": "e703",
-      "unicode_decimal": 59139
-    },
-    {
-      "icon_id": "16149166",
-      "name": "笔记",
-      "font_class": "biji",
-      "unicode": "e600",
-      "unicode_decimal": 58880
-    },
-    {
-      "icon_id": "22094887",
-      "name": "风景",
-      "font_class": "fengjing",
-      "unicode": "e60e",
-      "unicode_decimal": 58894
-    },
-    {
       "icon_id": "22236106",
       "name": "Web开发",
       "font_class": "Webkaifa",
       "unicode": "e6b5",
       "unicode_decimal": 59061
-    },
-    {
-      "icon_id": "27365352",
-      "name": "vuejs",
-      "font_class": "vuejs",
-      "unicode": "ec2c",
-      "unicode_decimal": 60460
-    },
-    {
-      "icon_id": "30119568",
-      "name": "后端开发",
-      "font_class": "houduankaifa1",
-      "unicode": "e601",
-      "unicode_decimal": 58881
     },
     {
       "icon_id": "32116944",
