@@ -27,6 +27,7 @@ import InfiniteScroll from '@/components/InfiniteScroll'
 
 const PC_PageSize = 4 //PC端默认页大小
 const Mobile_PageSize = 2 //移动端默认页大小
+
 export default function BlogHomepage() {
   const isMobile = useDeviceType()
   const navigate = useNavigate()
@@ -48,66 +49,46 @@ export default function BlogHomepage() {
   const [loading, setLoading] = useState(false)
   const [hasMore, setHasMore] = useState(false)
 
-  // 设置页大小 根据不同设备端
+  // 查询右边侧边栏数据
+  useEffect(() => {
+    // 查询侧边栏数据（仅PC端）
+    const fetchSidebarData = async () => {
+      try {
+        // 使用 Promise.all 并行请求，提高性能
+        const [tagRes, authorRes, totalRes, categoryRes, dateRes] =
+          await Promise.all([
+            // 查询标签数据列表
+            queryArticleTagList(),
+            // 查询作者个人信息
+            queryBlogAuthor(),
+            // 查询文章总条数
+            queryArticleTotal(),
+            // 查询文章分类总条数
+            queryArticleCategoryTotal(),
+            // 查询文章发布时间列表
+            queryArticlePublishDateList(),
+          ])
+
+        setTagList(tagRes.data)
+        setBlogAuthor(authorRes.data)
+        setArticleTotal(totalRes.data)
+        setArticleCategoryTotal(categoryRes.data)
+
+        const dateList = dateRes?.data?.map(d => ({ date: new Date(d) })) || []
+        setArticlePublishDateList(dateList)
+      } catch (error) {
+        console.error('侧边栏数据请求失败:', error)
+      }
+    }
+
+    if (isMobile) return // 移动端不需要查询
+    fetchSidebarData()
+  }, [isMobile])
+
+  // 处理 pageSize 随设备类型变化
   useEffect(() => {
     const pageSize = isMobile ? Mobile_PageSize : PC_PageSize
     setQueryParams(pre => ({ ...pre, pageSize }))
-  }, [isMobile])
-
-  // 查询右边侧边栏数据
-  useEffect(() => {
-    // 查询标签数据列表
-    const getArticleTagList = async () => {
-      try {
-        const res = await queryArticleTagList()
-        setTagList(res.data)
-      } catch (error) {
-        console.error('queryArticleTagList', error)
-      }
-    }
-    // 查询作者个人信息
-    const getBlogAuthor = async () => {
-      try {
-        const res = await queryBlogAuthor()
-        setBlogAuthor(res.data)
-      } catch (error) {
-        console.error('queryBlogAuthor', error)
-      }
-    }
-    // 查询文章总条数
-    const getArticleTotal = async () => {
-      try {
-        const res = await queryArticleTotal()
-        setArticleTotal(res.data)
-      } catch (error) {
-        console.error('queryArticleTotal', error)
-      }
-    }
-    // 查询文章分类总条数
-    const getArticleCategoryTotal = async () => {
-      try {
-        const res = await queryArticleCategoryTotal()
-        setArticleCategoryTotal(res.data)
-      } catch (error) {
-        console.error('queryArticleCategoryTotal', error)
-      }
-    }
-    // 查询文章发布时间列表
-    const getArticlePublishDateList = async () => {
-      try {
-        const res = await queryArticlePublishDateList()
-        const list = res?.data?.map(d => ({ date: new Date(d) })) || []
-        setArticlePublishDateList(list)
-      } catch (error) {
-        console.error('getArticlePublishDateList', error)
-      }
-    }
-    if (isMobile) return // 移动端不需要查询侧边栏数据
-    getArticleTagList()
-    getBlogAuthor()
-    getArticleTotal()
-    getArticleCategoryTotal()
-    getArticlePublishDateList()
   }, [isMobile])
 
   // 查询文章列表
@@ -115,7 +96,7 @@ export default function BlogHomepage() {
     // 查询文章列表
     const getArticleList = async () => {
       try {
-        // console.log('查询文章列表')
+        console.log('查询文章列表')
         const res = await queryHomePageArticleList(queryParams)
         // 更新总页数和当前页
         setTotalPage(res.data.pages)
@@ -147,7 +128,8 @@ export default function BlogHomepage() {
       }
     }
     getArticleList()
-  }, [isMobile, queryParams])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryParams])
 
   // ! 日期组件日期点击事件
   const onDayClick = (publishDateStr: string) => {

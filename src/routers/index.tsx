@@ -1,10 +1,11 @@
+import { createBrowserRouter } from 'react-router-dom'
+
 import Layout from '@/layout'
 import Home from '@/pages/Home'
 import Category from '@/pages/Category'
 import About from '@/pages/About'
 import BlogDetail from '@/pages/BlogDetail'
 import Error404 from '@/pages/Error404'
-import { createBrowserRouter } from 'react-router-dom'
 
 const routes = createBrowserRouter([
   {
