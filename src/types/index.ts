@@ -20,7 +20,7 @@ export interface Article {
   tagIds: number[] // 标签ids
   categoryIds: number[] // 分类ids
   excerpt: string // 摘要
-  updateTime: string // 更新时间
+  createTime: string // 更新时间
   articleTagList?: ArticleTag[] // 文章所属分tag列表
   articleCategoryList?: ArticleCategory[] // 文章所属分类
 }

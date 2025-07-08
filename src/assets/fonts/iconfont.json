@@ -6,6 +6,20 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "929535",
+      "name": "linux",
+      "font_class": "linux",
+      "unicode": "e769",
+      "unicode_decimal": 59241
+    },
+    {
+      "icon_id": "4392608",
+      "name": "centos",
+      "font_class": "icon-test",
+      "unicode": "e611",
+      "unicode_decimal": 58897
+    },
+    {
       "icon_id": "39349036",
       "name": "数据结构",
       "font_class": "shujujiegou",

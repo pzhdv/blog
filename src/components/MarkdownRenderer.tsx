@@ -1,51 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+// 主题查看 https://react-syntax-highlighter.github.io/react-syntax-highlighter/demo/prism.html
+import {
+  oneDark,
+  materialLight,
+} from 'react-syntax-highlighter/dist/esm/styles/prism' // 高亮主题
 import remarkGfm from 'remark-gfm'
 import rehypeExternalLinks from 'rehype-external-links'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-
-// 主题查看 https://react-syntax-highlighter.github.io/react-syntax-highlighter/demo/prism.html
-// 按需导入主题
-import oneDark from 'react-syntax-highlighter/dist/cjs/styles/prism/one-dark'
-import materialLight from 'react-syntax-highlighter/dist/cjs/styles/prism/material-light'
-// 其他主题：https://github.com/react-syntax-highlighter/react-syntax-highlighter/tree/master/src/styles/prism
-
-// 导入更多语言
-// 前端语言
-import css from 'react-syntax-highlighter/dist/cjs/languages/prism/css'
-import javascript from 'react-syntax-highlighter/dist/cjs/languages/prism/javascript'
-import typescript from 'react-syntax-highlighter/dist/cjs/languages/prism/typescript'
-import jsx from 'react-syntax-highlighter/dist/cjs/languages/prism/jsx'
-import tsx from 'react-syntax-highlighter/dist/cjs/languages/prism/tsx'
-import scss from 'react-syntax-highlighter/dist/cjs/languages/prism/scss'
-import less from 'react-syntax-highlighter/dist/cjs/languages/prism/less'
-import stylus from 'react-syntax-highlighter/dist/cjs/languages/prism/stylus'
-import sass from 'react-syntax-highlighter/dist/cjs/languages/prism/sass'
-import json from 'react-syntax-highlighter/dist/cjs/languages/prism/json'
-import yaml from 'react-syntax-highlighter/dist/cjs/languages/prism/yaml'
-import markdown from 'react-syntax-highlighter/dist/cjs/languages/prism/markdown'
-
-// 后端语言
-import python from 'react-syntax-highlighter/dist/cjs/languages/prism/python'
-import java from 'react-syntax-highlighter/dist/cjs/languages/prism/java'
-
-// SQL及数据库相关
-import sql from 'react-syntax-highlighter/dist/cjs/languages/prism/sql'
-
-// 脚本与命令行
-import bash from 'react-syntax-highlighter/dist/cjs/languages/prism/bash'
-import docker from 'react-syntax-highlighter/dist/cjs/languages/prism/docker'
-
-// 配置文件
-import ini from 'react-syntax-highlighter/dist/cjs/languages/prism/ini'
-
-// 其他语言：https://github.com/react-syntax-highlighter/react-syntax-highlighter/tree/master/src/languages/prism
-
 import { useTheme } from '@/context/ThemeContext'
-import IconFont from '../IconFont'
-
+import IconFont from './IconFont'
 // npm i react-markdown react-syntax-highlighter remark-gfm rehype-external-links rehype-raw
 // npm i -D @types/react-syntax-highlighter
 interface MarkdownRendererProps {
@@ -61,8 +27,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ language, codeString }) => {
   const { theme } = useTheme()
   const darkMode = theme === 'dark'
   const [copied, setCopied] = useState(false) // 复制状态
-  // 使用useEffect注册语言
-  useEffect(() => {}, [])
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(codeString)
@@ -76,7 +41,9 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ language, codeString }) => {
   return (
     <div className="code-block">
       <div className="flex justify-between py-2 px-4 rounded-t-xl bg-[#f2f2fe] dark:bg-gray-800 ">
-        <span className="language-tag">{language.toLocaleLowerCase()}</span>
+        <span className="language-tag">
+          {language && language.toLocaleLowerCase()}
+        </span>
         <button
           onClick={handleCopy}
           className="flex justify-center items-center"
@@ -182,33 +149,26 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             {...props}
           />
         ),
-        code({ node: any, inline, className, children, ...props }: any) {
-          if (inline) {
+        code({ node, inline, className, children, ...props }: any) {
+          // 检查是否是块级代码
+          const isBlockCode =
+            className?.includes('language-') || String(children).includes('\n')
+          if (isBlockCode) {
+            const match = /language-(\w+)/.exec(className || '') || ['']
             return (
-              <code
-                className={`px-1.5 py-0.5 rounded ${
-                  isDarkMode
-                    ? 'bg-gray-700 text-pink-300'
-                    : 'bg-gray-100 text-pink-600'
-                }`}
-                {...props}
+              <CodeBlock
+                language={match[1]}
+                codeString={String(children).replace(/\n$/, '')}
               />
             )
+          } else {
+            // 明确处理行内代码
+            return (
+              <code {...props} className="p-1   text-orange-500 ">
+                {children}
+              </code>
+            )
           }
-          const match = /language-(\w+)/.exec(className || '')
-          return match ? (
-            <CodeBlock
-              language={match[1]}
-              codeString={String(children).replace(/\n$/, '')}
-            />
-          ) : (
-            <code
-              {...props}
-              className="p-1  bg-gray-100 dark:bg-gray-700 text-orange-500 "
-            >
-              {children}
-            </code>
-          )
         },
         // 分隔线
         hr: ({ node, ...props }) => (

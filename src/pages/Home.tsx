@@ -19,14 +19,13 @@ import type {
   HomePageQueryArticleListParams as QueryParams,
 } from '@/types'
 
-import { deduplicateArticles } from '@/utils/ArrayUtils'
-
 import BlogCalendar from '@/components/BlogCalendar'
 import PcPagination from '@/components/PcPagination'
 import InfiniteScroll from '@/components/InfiniteScroll'
+import Skeleton from '@/components/Skeleton'
 
 const PC_PageSize = 4 //PC端默认页大小
-const Mobile_PageSize = 2 //移动端默认页大小
+const Mobile_PageSize = 4 //移动端默认页大小
 
 export default function BlogHomepage() {
   const isMobile = useDeviceType()
@@ -41,9 +40,9 @@ export default function BlogHomepage() {
   const [activeTagId, setActiveTagId] = useState<number>() // 激活的标签Id
   const [articleList, setArticleList] = useState<Article[]>([]) // 文章列表
   const [totalPage, setTotalPage] = useState<number>(0) // 总分页数
-  const [currentPage, setCurrentPage] = useState<number>(0) // 当前页码
+  const [currentPage, setCurrentPage] = useState<number>(1) // 当前页码
   const [queryParams, setQueryParams] = useState<QueryParams>({
-    pageSize: PC_PageSize,
+    pageSize: isMobile ? Mobile_PageSize : PC_PageSize,
     pageNum: 1,
   }) // 查询参数对象
   const [loading, setLoading] = useState(false)
@@ -54,41 +53,32 @@ export default function BlogHomepage() {
     // 查询侧边栏数据（仅PC端）
     const fetchSidebarData = async () => {
       try {
-        // 使用 Promise.all 并行请求，提高性能
-        const [tagRes, authorRes, totalRes, categoryRes, dateRes] =
-          await Promise.all([
-            // 查询标签数据列表
-            queryArticleTagList(),
-            // 查询作者个人信息
-            queryBlogAuthor(),
-            // 查询文章总条数
-            queryArticleTotal(),
-            // 查询文章分类总条数
-            queryArticleCategoryTotal(),
-            // 查询文章发布时间列表
-            queryArticlePublishDateList(),
-          ])
-
+        // 查询标签数据列表
+        const tagRes = await queryArticleTagList()
         setTagList(tagRes.data)
+
+        // 查询作者个人信息
+        const authorRes = await queryBlogAuthor()
         setBlogAuthor(authorRes.data)
+
+        // 查询文章总条数
+        const totalRes = await queryArticleTotal()
         setArticleTotal(totalRes.data)
+
+        // 查询文章分类总条数
+        const categoryRes = await queryArticleCategoryTotal()
         setArticleCategoryTotal(categoryRes.data)
 
+        // 查询文章发布时间列表
+        const dateRes = await queryArticlePublishDateList()
         const dateList = dateRes?.data?.map(d => ({ date: new Date(d) })) || []
         setArticlePublishDateList(dateList)
       } catch (error) {
         console.error('侧边栏数据请求失败:', error)
       }
     }
-
     if (isMobile) return // 移动端不需要查询
     fetchSidebarData()
-  }, [isMobile])
-
-  // 处理 pageSize 随设备类型变化
-  useEffect(() => {
-    const pageSize = isMobile ? Mobile_PageSize : PC_PageSize
-    setQueryParams(pre => ({ ...pre, pageSize }))
   }, [isMobile])
 
   // 查询文章列表
@@ -97,6 +87,7 @@ export default function BlogHomepage() {
     const getArticleList = async () => {
       try {
         console.log('查询文章列表')
+        setLoading(true)
         const res = await queryHomePageArticleList(queryParams)
         // 更新总页数和当前页
         setTotalPage(res.data.pages)
@@ -108,12 +99,7 @@ export default function BlogHomepage() {
             setArticleList(res.data.records)
           } else {
             // 追加新数据
-            // setArticleList(pre => [...pre, ...res.data.records])
-            setArticleList(pre => {
-              const newArticles = res.data.records || []
-              const uniqueArticles = deduplicateArticles(pre, newArticles)
-              return uniqueArticles
-            })
+            setArticleList(pre => [...pre, ...res.data.records])
           }
           // 判断是否还有更多数据
           setHasMore(res.data.current < res.data.pages)
@@ -144,8 +130,7 @@ export default function BlogHomepage() {
 
   // ! 跳转文章详情
   const toDetailPage = (articleId: number) => {
-    // navigate('/detail', { state: { articleId } }) // 需要修改路由
-    navigate(`/detail/${articleId}`)
+    navigate(`/detail/${articleId}`, { state: { from: 'home' } })
   }
 
   // ! 分页按钮被被点击
@@ -156,40 +141,43 @@ export default function BlogHomepage() {
   //  ! 上拉加载更多
   const handleLoadMore = async () => {
     if (loading) return
-    // console.log('上拉加载更多')
+    console.log('上拉加载更多')
     setLoading(true)
-    if (!loading && hasMore) {
-      setQueryParams(prev => ({
-        ...prev,
-        pageNum: prev.pageNum + 1,
-      }))
-    }
+    setTimeout(() => {
+      if (!loading && hasMore) {
+        setQueryParams(prev => ({
+          ...prev,
+          pageNum: prev.pageNum + 1,
+        }))
+      }
+    }, 300)
   }
 
   // 渲染空组件
   const renderEmpty = () => {
-    // 加载状态 或有文章
-    if (loading || articleList.length > 0) {
-      return
+    if (loading) {
+      return <Skeleton />
     }
     return (
-      <div className="p-8 text-center text-gray-500 dark:text-gray-400">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-4"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        <p className="text-lg font-medium">暂无文章，稍后再来看看吧！</p>
-      </div>
+      articleList.length === 0 && (
+        <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-4"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <p className="text-lg font-medium">暂无文章，稍后再来看看吧！</p>
+        </div>
+      )
     )
   }
 
@@ -220,7 +208,7 @@ export default function BlogHomepage() {
               </p>
               <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                 <span>
-                  {article.updateTime?.split(' ')[0]}{' '}
+                  {article.createTime?.split(' ')[0]}{' '}
                   {/* "2025-05-06 01:42:09" */}
                 </span>
                 <button className="ml-auto text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
@@ -332,12 +320,14 @@ export default function BlogHomepage() {
         {renderArticleList()}
         {/* 分页 移动端下拉加载更多 pc端显示分页按钮*/}
         {isMobile ? (
-          <InfiniteScroll
-            loadMore={handleLoadMore}
-            hasMore={hasMore}
-            loading={loading}
-            threshold={50}
-          />
+          articleList.length > 0 && (
+            <InfiniteScroll
+              loadMore={handleLoadMore}
+              hasMore={hasMore}
+              loading={loading}
+              threshold={50}
+            />
+          )
         ) : (
           <PcPagination
             totalPage={totalPage}

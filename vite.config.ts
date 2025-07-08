@@ -9,7 +9,6 @@ import { visualizer } from 'rollup-plugin-visualizer'
 // https://vite.dev/config/
 export default defineConfig(({ mode }: ConfigEnv) => {
   const env = loadEnv(mode, process.cwd())
-
   // 模式判断
   const isProduction = mode === 'production'
 
@@ -24,7 +23,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           threshold: 10240, // 大于10kb的文件才压缩
           algorithm: 'brotliCompress', // 或 'brotli'
           ext: '.br',
-          deleteOriginFile: false, // 生产环境建议改为 false 保留源文件 以确保兼容性
+          deleteOriginFile: true, // 生产环境建议改为 false 保留源文件 以确保兼容性
         }),
 
       // Gzip 压缩配置 生产环境启用
@@ -34,7 +33,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           threshold: 10240, // 大于10kb的文件才压缩
           algorithm: 'gzip', // 压缩算法
           ext: '.gz', // 生成的压缩文件后缀
-          deleteOriginFile: false, // 生产环境建议改为 false 保留源文件 以确保兼容性
+          deleteOriginFile: true, // 生产环境建议改为 false 保留源文件 以确保兼容性
         }),
 
       isProduction &&
@@ -98,13 +97,14 @@ export default defineConfig(({ mode }: ConfigEnv) => {
         output: {
           //  分包策略
           manualChunks(id) {
-            if (id.includes('node_modules')) {
-              return id
-                .toString()
-                .split('node_modules/')[1]
-                .split('/')[0]
-                .toString()
-            }
+            // if (id.includes('node_modules')) {
+            //   return id
+            //     .toString()
+            //     .split('node_modules/')[1]
+            //     .split('/')[0]
+            //     .toString()
+            // }
+            return 'vendor-all'
           },
           chunkFileNames: 'js/[name]-[hash:8].js', // 分包文件命名
           entryFileNames: 'js/[name]-[hash].js', // 入口文件命名

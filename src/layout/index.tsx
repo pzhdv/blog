@@ -21,7 +21,7 @@ export default function RootLayout() {
       <Header />
       {/* 主体内容 */}
       <main className="max-w-6xl mx-auto">
-        <div className="px-4 pt-8 pb-2">{useOutlet()}</div>
+        <div className="pt-8 pb-2 px-4">{useOutlet()}</div>
       </main>
       {/* 页脚 */}
       <Footer />

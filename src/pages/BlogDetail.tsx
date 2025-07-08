@@ -1,20 +1,22 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 
 import { queryArticleById } from '@/api'
 
 import type { Article } from '@/types'
 
 import MarkdownRenderer from '@/components/MarkdownRenderer'
+import Skeleton from '@/components/Skeleton'
 
 const BlogDetail = () => {
   const navigate = useNavigate()
-  const { articleId } = useParams() // navigate(`/detail/${articleId}`)
-  // const { state } = useLocation() //navigate('/detail', { state: { articleId } })
-  // const articleId = state?.articleId
+  const { articleId } = useParams()
+  const location = useLocation()
+  const fromPage = location.state?.from || 'unknown'
+  console.log('fromPage', fromPage)
 
   const [article, setArticle] = useState<Article | null>()
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     /**
@@ -34,7 +36,7 @@ const BlogDetail = () => {
     if (!articleId) return
     const getArticleById = async () => {
       try {
-        setLoading(true)
+        // setLoading(true)
         const res = await queryArticleById(parseInt(articleId))
         setArticle(res.data)
       } catch (error) {
@@ -44,11 +46,36 @@ const BlogDetail = () => {
         setLoading(false)
       }
     }
+
+    // 滚动到页面顶部
+    const scrollToTop = () => {
+      if (
+        window.scrollTo &&
+        'scrollBehavior' in document.documentElement.style
+      ) {
+        // 现代浏览器支持平滑滚动
+        window.scrollTo({
+          top: 0,
+          behavior: 'auto',
+        })
+      } else {
+        // 旧浏览器或移动端浏览器，使用简单的滚动
+        window.scrollTo(0, 0)
+      }
+    }
+
+    scrollToTop()
     if (isNumeric(articleId)) {
       getArticleById()
     }
   }, [articleId])
 
+  const handleBack = () => {
+    // if (fromPage === 'home') {
+    // } else if (fromPage === 'category') {
+    // }
+    navigate(-1)
+  }
   // 渲染导航栏
   const renderNavigationBar = () => {
     return (
@@ -56,7 +83,7 @@ const BlogDetail = () => {
         <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="h-16 flex items-center">
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleBack}
               className="hover:cursor-pointer flex items-center gap-2 text-gray-600 dark:text-gray-400  hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
             >
               <svg
@@ -80,10 +107,14 @@ const BlogDetail = () => {
   }
   // 渲染文章不存在
   const renderArticleEmpty = () => {
-    // 加载状态 或有文章
-    if (loading || article) {
+    // 加载状态
+    if (loading) {
+      return <Skeleton />
+    }
+    if (article) {
       return
     }
+
     return (
       <div className="flex flex-col items-center justify-center ">
         <svg
@@ -111,7 +142,7 @@ const BlogDetail = () => {
   const renderArticleDetail = () => {
     if (!article) return
     return (
-      <article className="space-y-8">
+      <article className="space-y-8 ">
         {/* 标题区 */}
         <div className="space-y-6">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight leading-tight">
@@ -133,7 +164,7 @@ const BlogDetail = () => {
                   p-id="1620"
                 ></path>
               </svg>
-              {article?.updateTime?.split(' ')[0]} {/* "2025-05-06 01:42:09" */}
+              {article?.createTime?.split(' ')[0]} {/* "2025-05-06 01:42:09" */}
             </div>
           </div>
         </div>
@@ -157,7 +188,8 @@ const BlogDetail = () => {
 
         {/* 正文内容 */}
         <div className="prose prose-lg dark:prose-invert overflow-x-hidden">
-          <div className="text-gray-700 dark:text-gray-300 space-y-8 px-2 ">
+          {/* px-2  */}
+          <div className="text-gray-700 dark:text-gray-300 space-y-8 px-0 md:px-2 ">
             <MarkdownRenderer content={article?.markdown || ''} />
           </div>
         </div>
@@ -170,7 +202,7 @@ const BlogDetail = () => {
       {/* 导航栏 */}
       {renderNavigationBar()}
       {/* 主体内容 */}
-      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-full mx-auto px-0 md:px-4 sm:px-6 lg:px-8 py-8">
         {/* 文章不存在状态 */}
         {renderArticleEmpty()}
         {/* 渲染文章详情 */}
