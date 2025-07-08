@@ -26,7 +26,7 @@ export const queryCategoryListWithArticleCount = (parentId?: number) =>
     { parentId: parentId },
   )
 export const queryArticleCategoryTotal = () =>
-  request.get<number>('/article/total')
+  request.get<number>('/articleCategory/total')
 
 // 文章部分
 /**
@@ -79,6 +79,6 @@ export const queryBlogAuthor = () =>
 export const queryBlogMission = () =>
   request.get<BlogMission>('/blogMission/blogMissionInfo')
 
-// 经历与成就
+// 工作经历
 export const queryJobExperienceList = () =>
   request.get<JobExperience[]>('/jobExperience/list')

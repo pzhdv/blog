@@ -55,9 +55,10 @@ const ExclamationTriangleIcon = ({ className }: { className?: string }) => {
     </svg>
   )
 }
+
 export default function Error404Page() {
   return (
-    <div className="h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors">
+    <div className="h-screen bg-linear-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24">
         <div className="max-w-3xl mx-auto text-center">
           {/* 错误代码动画 */}
@@ -75,10 +76,10 @@ export default function Error404Page() {
 
           {/* 主要内容 */}
           <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-6">
-            页面消失在了数字宇宙
+            页面不存在
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
-            我们似乎找不到您要访问的页面，可能是地址输入错误或内容已被迁移。
+            找不到您要访问的页面，可能是地址输入错误或内容已被迁移。
           </p>
 
           {/* 操作按钮组 */}

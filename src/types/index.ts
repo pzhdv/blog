@@ -20,7 +20,7 @@ export interface Article {
   tagIds: number[] // 标签ids
   categoryIds: number[] // 分类ids
   excerpt: string // 摘要
-  updateTime: string // 更新时间
+  createTime: string // 更新时间
   articleTagList?: ArticleTag[] // 文章所属分tag列表
   articleCategoryList?: ArticleCategory[] // 文章所属分类
 }
@@ -104,4 +104,14 @@ export interface CategoryPageQueryArticleListParams {
   categoryIds?: number[] // 分类Id列表
   pageNum: number // 当前页码
   pageSize: number // 页大小
+}
+
+/**
+ * 联系方式数据类型
+ */
+export interface ContactMethodType {
+  name: string
+  value: string
+  iconClass: string
+  url?: string
 }

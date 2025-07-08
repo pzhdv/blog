@@ -1,0 +1,52 @@
+/* 清除 pre、code 标签默认选中、点击时的外边框与边框 */
+pre,
+pre:focus,
+pre:active,
+code,
+code:focus,
+code:active {
+  outline: none !important;
+  border: none !important;
+}
+
+/* 关闭代码容器默认字体间隙，适配 shiki 行号布局 */
+pre[data-line-numbers] code {
+  font-size: 0;
+  display: block;
+}
+
+/* 单行代码行样式；开启行号计数器、弹性布局、行高和字号 */
+pre[data-line-numbers] > code > span.line {
+  counter-increment: line; /* 自增行号计数器 */
+  display: flex;
+  gap: 4px; /* 行号和代码之间的间距 */
+  line-height: 1.3;
+  font-size: 14.5px;
+}
+
+/* 行号伪元素样式 */
+pre[data-line-numbers] > code > span.line::before {
+  content: counter(line); /* 读取计数器展示行号 */
+  min-width: 26px; /* 固定行号区域最小宽度，防止位数挤压 */
+  padding-right: 6px;
+  text-align: right; /* 行号靠右对齐 */
+  border-right: 1px solid #e5e7eb; /* 浅色模式行号右侧分隔线 */
+  color: #9ca3af; /* 行号文字灰色 */
+  flex-shrink: 0; /* 禁止行号区域被压缩 */
+  user-select: none; /* 禁止鼠标选中复制行号 */
+}
+
+/* 深色模式：修改行号分隔线颜色 */
+.dark pre[data-line-numbers] > code > span.line::before {
+  border-right-color: #374151;
+}
+
+/* 亮色模式强制代码块底色，和页面背景区分 */
+.light .code-block .shiki {
+  background-color: #f6f8fa !important;
+}
+
+/* 网页端鼠标文字选中背景色 */
+.shiki span::selection {
+  background-color: #b3d8ff;
+}

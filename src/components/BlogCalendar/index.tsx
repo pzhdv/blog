@@ -6,8 +6,13 @@ import {
   eachDayOfInterval,
   isSameMonth,
   isSameDay,
+  addDays,
+  subDays,
+  getDay,
 } from 'date-fns'
-import { useTheme } from '@/context/ThemeContext'
+
+import { useAppStateContext } from '@/context/AppStateContext'
+import { NextMonthIcon, PrevMonthIcon } from '@/components/Icons'
 
 interface CalendarProps {
   /**
@@ -22,7 +27,7 @@ interface CalendarProps {
 }
 
 const BlogCalendar = ({ posts, onDayClick }: CalendarProps) => {
-  const { theme } = useTheme()
+  const { theme } = useAppStateContext()
   const darkMode = theme === 'dark'
 
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -31,14 +36,37 @@ const BlogCalendar = ({ posts, onDayClick }: CalendarProps) => {
   // 生成当月日期数据
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(currentDate)
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd })
+
+  // 获取月初第一天是星期几 (0是星期日，6是星期六)
+  const firstDayOfWeek = getDay(monthStart)
+
+  // 获取月末最后一天是星期几
+  const lastDayOfWeek = getDay(monthEnd)
+
+  // 计算需要显示的上个月的天数
+  const daysFromPrevMonth = firstDayOfWeek
+
+  // 计算需要显示的下个月的天数
+  const daysFromNextMonth = 6 - lastDayOfWeek
+
+  // 计算日历显示的起始日期（上个月的日期）
+  const calendarStart = subDays(monthStart, daysFromPrevMonth)
+
+  // 计算日历显示的结束日期（下个月的日期）
+  const calendarEnd = addDays(monthEnd, daysFromNextMonth)
+
+  // 生成完整的日历日期（包含上月、本月和下月的部分日期）
+  const calendarDays = eachDayOfInterval({
+    start: calendarStart,
+    end: calendarEnd,
+  })
 
   // 获取文章数量
   const getPostCount = (date: Date) => {
     return posts.filter(post => isSameDay(post.date, date)).length
   }
 
-  // 修改后的月份切换处理函数
+  // 月份切换处理函数
   const handleMonthChange = (direction: 'prev' | 'next') => {
     setCurrentDate(prevDate => {
       // 创建新的日期实例避免引用问题
@@ -59,17 +87,10 @@ const BlogCalendar = ({ posts, onDayClick }: CalendarProps) => {
   const handleDateClick = (date: Date) => {
     // 保存当前点击日期
     setSelectedDate(date)
-    // // 获取当前日期下的文章总数
-    // const articleTotal = getPostCount(date)
-    // if (articleTotal > 0) {
-    //   // 触发事件
-    //   onDayClick && onDayClick(format(date, 'yyyy-MM-dd'))
-    // } else {
-    //   onDayClick && onDayClick(undefined)
-    // }
     onDayClick && onDayClick(format(date, 'yyyy-MM-dd'))
   }
 
+  // 日期格子组件
   // 日期格子组件
   const DayTile = ({ date }: { date: Date }) => {
     const postCount = getPostCount(date)
@@ -81,20 +102,32 @@ const BlogCalendar = ({ posts, onDayClick }: CalendarProps) => {
       <button
         onClick={() => handleDateClick(date)}
         className={`
-          aspect-square p-2 text-sm transition-all hover:bg-gray-100 dark:hover:bg-gray-700
-          ${isSelected ? 'bg-blue-100 dark:bg-blue-800' : ''}
-          ${isToday ? 'border border-blue-300 dark:border-blue-500' : ''}
-          ${!isCurrentMonth ? 'opacity-50' : ''}
-          relative
-        `}
+        aspect-square p-2 text-sm transition-all hover:bg-gray-100 dark:hover:bg-gray-700
+        ${isSelected ? 'bg-blue-100 dark:bg-blue-800' : ''}
+        ${isToday ? 'border border-blue-300 dark:border-blue-500' : ''}
+        relative
+      `}
       >
-        <div className="text-gray-700 dark:text-gray-300">
+        {/* 文字根据是否当月切换文字颜色 */}
+        <div
+          className={`
+        ${
+          darkMode
+            ? isCurrentMonth
+              ? 'text-gray-300'
+              : 'text-gray-500'
+            : isCurrentMonth
+              ? 'text-gray-700'
+              : 'text-gray-600'
+        }
+      `}
+        >
           {format(date, 'd')}
         </div>
 
-        {/* 文章标记点 */}
+        {/* 文章标记点：圆点始终不透明，不管是否当月 */}
         {postCount > 0 && (
-          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex space-x-[2px]">
+          <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex space-x-0.5">
             {[...Array(Math.min(postCount, 3))].map((_, i) => (
               <span
                 key={i}
@@ -123,7 +156,7 @@ const BlogCalendar = ({ posts, onDayClick }: CalendarProps) => {
             onClick={() => handleMonthChange('prev')}
             className={`
               group p-2 rounded-lg transition-all duration-300
-              hover:bg-gradient-to-l hover:from-blue-500/10 hover:to-transparent
+              hover:bg-linear-to-l hover:from-blue-500/10 hover:to-transparent
               ${
                 darkMode
                   ? 'hover:shadow-[0_0_12px_-2px_rgba(96,165,250,0.3)]'
@@ -133,39 +166,13 @@ const BlogCalendar = ({ posts, onDayClick }: CalendarProps) => {
             `}
             aria-label="上一月"
           >
-            <svg
-              className={`
-                w-6 h-6 transition-transform duration-300
-                ${darkMode ? 'text-blue-400 group-hover:text-blue-300' : 'text-blue-600 group-hover:text-blue-500'}
-                group-hover:-translate-x-0.5
-              `}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.5"
-            >
-              <path
-                d="M15 6l-6 6 6 6"
-                className={darkMode ? 'opacity-90' : 'opacity-80'}
-              />
-              <path
-                d="M11 6l-6 6 6 6"
-                className={`
-                  ${darkMode ? 'text-blue-600' : 'text-blue-200'}
-                  opacity-0
-                  group-hover:opacity-40
-                `}
-                strokeWidth="2.5"
-              />
-            </svg>
+            <PrevMonthIcon darkMode={darkMode} />
           </button>
           <button
             onClick={() => handleMonthChange('next')}
             className={`
               group p-2 rounded-lg transition-all duration-300
-              hover:bg-gradient-to-r hover:from-blue-500/10 hover:to-transparent
+              hover:bg-linear-to-r hover:from-blue-500/10 hover:to-transparent
               ${
                 darkMode
                   ? 'hover:shadow-[0_0_12px_-2px_rgba(96,165,250,0.3)]'
@@ -175,41 +182,7 @@ const BlogCalendar = ({ posts, onDayClick }: CalendarProps) => {
             `}
             aria-label="下一月"
           >
-            <svg
-              className={`
-                w-6 h-6 transition-transform duration-300
-                ${darkMode ? 'text-blue-400 group-hover:text-blue-300' : 'text-blue-600 group-hover:text-blue-500'}
-                group-hover:translate-x-0.5
-              `}
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1.5"
-            >
-              <path
-                d="M9 6l6 6-6 6"
-                pathLength="1"
-                className={`
-                  stroke-current
-                  ${darkMode ? 'opacity-90' : 'opacity-80'}
-                `}
-              />
-              <path
-                d="M13 6l6 6-6 6"
-                className={`
-                  stroke-current
-                  ${darkMode ? 'text-blue-600' : 'text-blue-200'}
-                  opacity-0
-                  group-hover:opacity-40
-                  transition-opacity
-                  duration-500
-                `}
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-            </svg>
+            <NextMonthIcon darkMode={darkMode} />
           </button>
         </div>
       </div>
@@ -226,9 +199,9 @@ const BlogCalendar = ({ posts, onDayClick }: CalendarProps) => {
         ))}
       </div>
 
-      {/* 日期网格 */}
+      {/* 日期网格 - 使用完整的日历日期数组 */}
       <div className="grid grid-cols-7 gap-1">
-        {daysInMonth.map((date, index) => (
+        {calendarDays.map((date, index) => (
           <DayTile key={index} date={date} />
         ))}
       </div>

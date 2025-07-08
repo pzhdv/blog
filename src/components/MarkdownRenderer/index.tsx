@@ -1,235 +1,151 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState } from 'react'
+// npm i react-markdown  rehype-sanitize remark-gfm rehype-external-links
+
 import ReactMarkdown from 'react-markdown'
-import rehypeRaw from 'rehype-raw'
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-// 主题查看 https://react-syntax-highlighter.github.io/react-syntax-highlighter/demo/prism.html
-import {
-  oneDark,
-  materialLight,
-} from 'react-syntax-highlighter/dist/cjs/styles/prism' // 高亮主题
+import rehypeSanitize from 'rehype-sanitize'
 import remarkGfm from 'remark-gfm'
 import rehypeExternalLinks from 'rehype-external-links'
-import { useTheme } from '@/context/ThemeContext'
-import IconFont from '../IconFont'
-// npm i react-markdown react-syntax-highlighter remark-gfm rehype-external-links rehype-raw
-// npm i -D @types/react-syntax-highlighter
+
+import CodeBlock from './CodeBlock'
+
 interface MarkdownRendererProps {
   content: string
 }
 
-interface CodeBlockProps {
-  language: string
-  codeString: string
-}
-// 代码组件部分
-const CodeBlock: React.FC<CodeBlockProps> = ({ language, codeString }) => {
-  const { theme } = useTheme()
-  const darkMode = theme === 'dark'
-  const [copied, setCopied] = useState(false) // 复制状态
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(codeString)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    } catch (err) {
-      console.error('复制失败:', err)
-    }
-  }
-
-  return (
-    <div className="code-block">
-      <div className="flex justify-between py-2 px-4 rounded-t-xl bg-[#f2f2fe] dark:bg-gray-800 ">
-        <span className="language-tag">{language.toLocaleLowerCase()}</span>
-        <button
-          onClick={handleCopy}
-          className="flex justify-center items-center"
-          aria-label="复制代码"
-        >
-          <IconFont
-            iconClass="iconfont icon-fuzhi"
-            color={copied ? '#3498db' : 'gray'}
-            size={16}
-          />
-        </button>
-      </div>
-      {/* 代码高亮 */}
-      <SyntaxHighlighter
-        language={language}
-        customStyle={{ margin: 0, marginTop: -4 }}
-        style={darkMode ? oneDark : materialLight}
-        className="rounded-t-0 rounded-b-xl"
-        showLineNumbers
-      >
-        {codeString}
-      </SyntaxHighlighter>
-    </div>
-  )
-}
-
-const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
-  const { theme } = useTheme()
-  const isDarkMode = theme === 'dark'
+const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
   return (
     <ReactMarkdown
       remarkPlugins={[
         remarkGfm,
-        [rehypeExternalLinks, { target: '_blank', rel: ['nofollow'] }],
+        [
+          rehypeExternalLinks,
+          { target: '_blank', rel: ['noopener', 'nofollow'] },
+        ],
       ]}
-      rehypePlugins={[rehypeRaw]}
+      rehypePlugins={[rehypeSanitize]}
       components={{
-        // 标题
         h1: ({ node, ...props }) => (
           <h1
-            className="text-3xl md:text-4xl font-bold mb-6 mt-12 border-b pb-2 border-gray-200 dark:border-gray-700"
+            className="text-xl sm:text-2xl md:text-3xl font-bold mb-5 mt-6 first:mt-0 pb-2 text-gray-900 dark:text-gray-100 wrap-break-word"
             {...props}
           />
         ),
         h2: ({ node, ...props }) => (
           <h2
-            className="text-2xl md:text-3xl font-semibold mb-5 mt-10 border-b pb-2 border-gray-200 dark:border-gray-700"
+            className="text-lg sm:text-xl md:text-2xl font-semibold mb-4 mt-6 first:mt-0 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 wrap-break-word"
             {...props}
           />
         ),
         h3: ({ node, ...props }) => (
           <h3
-            className="text-xl md:text-2xl font-medium mb-4 mt-8"
+            className="text-base sm:text-lg md:text-xl font-semibold mb-3 mt-5 first:mt-0 text-gray-800 dark:text-gray-200 wrap-break-word"
             {...props}
           />
         ),
         h4: ({ node, ...props }) => (
-          <h4 className="text-lg md:text-xl font-medium mb-3 mt-6" {...props} />
+          <h4
+            className="text-sm sm:text-base md:text-lg font-medium mb-3 mt-4 first:mt-0 text-gray-700 dark:text-gray-300 wrap-break-word"
+            {...props}
+          />
         ),
         h5: ({ node, ...props }) => (
           <h5
-            className="text-base md:text-lg font-medium mb-2 mt-4"
+            className="text-sm sm:text-base font-medium mb-2 mt-4 first:mt-0 text-gray-700 dark:text-gray-300 wrap-break-word"
             {...props}
           />
         ),
         h6: ({ node, ...props }) => (
           <h6
-            className="text-sm md:text-base font-medium mb-2 mt-4"
+            className="text-xs sm:text-sm font-medium mb-2 mt-3 first:mt-0 text-gray-600 dark:text-gray-400 wrap-break-word"
             {...props}
           />
         ),
-
-        // 段落
         p: ({ node, ...props }) => (
           <p
-            className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed"
+            className="text-gray-700 dark:text-gray-300 my-2 leading-relaxed text-sm sm:text-base wrap-break-word"
             {...props}
           />
         ),
-
-        // 列表
         ul: ({ node, depth, ...props }: any) => (
           <ul
-            className={`list-disc pl-6 mb-4 space-y-1 ${depth > 0 ? 'ml-4' : ''}`}
+            className={`list-disc pl-4 sm:pl-6 mb-4 space-y-1 sm:space-y-2 text-gray-700 dark:text-gray-300 wrap-break-word ${depth > 0 ? 'ml-2 sm:ml-4' : ''}`}
             {...props}
           />
         ),
         ol: ({ node, depth, ...props }: any) => (
           <ol
-            className={`list-decimal pl-6 mb-4 space-y-1 ${depth > 0 ? 'ml-4' : ''}`}
+            className={`list-decimal pl-4 sm:pl-6 mb-4 space-y-1 sm:space-y-2 text-gray-700 dark:text-gray-300 wrap-break-word ${depth > 0 ? 'ml-2 sm:ml-4' : ''}`}
             {...props}
           />
         ),
         li: ({ node, ...props }) => (
           <li
-            className="pl-1 marker:text-gray-400 dark:marker:text-gray-600"
+            className="pl-1 sm:pl-2 ml-1 text-sm sm:text-base leading-relaxed wrap-break-word"
             {...props}
           />
         ),
         pre: ({ node, ...props }) => (
           <pre
-            className="m-1  max-w-full overflow-x-auto overflow-y-hidden"
+            className="m-1 max-w-full overflow-x-auto overflow-y-hidden outline-none border-none"
             {...props}
           />
         ),
-        code({ node: any, inline, className, children, ...props }: any) {
-          if (inline) {
+        code({ node, inline, className, children, ...props }: any) {
+          const isBlockCode =
+            className?.includes('language-') || String(children).includes('\n')
+          if (isBlockCode) {
+            const match = /language-(\w+)/.exec(className || '') || ['']
+            const rawCode = String(children)
+            return <CodeBlock language={match[1]} codeString={rawCode} />
+          } else {
             return (
-              <code
-                className={`px-1.5 py-0.5 rounded ${
-                  isDarkMode
-                    ? 'bg-gray-700 text-pink-300'
-                    : 'bg-gray-100 text-pink-600'
-                }`}
-                {...props}
-              />
+              <code {...props} className="p-1 text-orange-500">
+                {children}
+              </code>
             )
           }
-          const match = /language-(\w+)/.exec(className || '')
-          return match ? (
-            <CodeBlock
-              language={match[1]}
-              codeString={String(children).replace(/\n$/, '')}
-            />
-          ) : (
-            <code
-              {...props}
-              className="p-1  bg-gray-100 dark:bg-gray-700 text-orange-500 "
-            >
-              {children}
-            </code>
-          )
         },
-        // 分隔线
         hr: ({ node, ...props }) => (
           <hr
-            className="my-5 border-t border-gray-200 dark:border-gray-700"
+            className="my-8 border-0 h-px bg-gray-300 dark:bg-gray-600"
             {...props}
           />
         ),
-
-        // 换行
         br: ({ node, ...props }) => <br className="block h-4" {...props} />,
-
-        // 引用
         blockquote: ({ node, ...props }) => (
           <blockquote
-            className={`border-l-4 pl-4 my-4 italic ${
-              isDarkMode
-                ? 'border-gray-600 text-gray-400'
-                : 'border-gray-300 text-gray-600'
-            }`}
+            className="border-l-4 border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20 pl-4 sm:pl-6 pr-3 sm:pr-4 py-1 my-0 rounded-r-lg italic text-gray-700 dark:text-gray-300 shadow-sm wrap-break-word"
             {...props}
           />
         ),
-
-        // 图片优化
         img: ({ node, ...props }) => (
-          <img
-            className="rounded-m my-3 shadow-lg max-w-full h-auto dark:brightness-95"
-            {...props}
-          />
+          <div className="my-6 text-center">
+            <img
+              loading="lazy"
+              className="max-w-full h-auto mx-auto"
+              {...props}
+            />
+          </div>
         ),
-
-        // 链接
         a: ({ node, ...props }) => (
           <a
-            className={`hover:underline ${
-              isDarkMode
-                ? 'text-blue-400 hover:text-blue-300'
-                : 'text-blue-600 hover:text-blue-800'
-            }`}
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline decoration-blue-500/30 hover:decoration-blue-500 underline-offset-2 transition-colors duration-200 font-medium break-all"
             target="_blank"
             rel="noopener noreferrer"
             {...props}
           />
         ),
-
-        // 表格
         table: ({ node, ...props }) => (
           <div className="overflow-x-auto touch-pan-x mx-3 sm:mx-0">
             <table
-              className="w-full min-w-[600px] sm:min-w-0 my-3 border border-gray-200 dark:border-gray-600"
+              className="w-full min-w-150 sm:min-w-0 my-3 border border-gray-200 dark:border-gray-600"
               {...props}
             />
           </div>
         ),
-        // thead: ({ node, ...props }) => <thead className="bg-gray-100 dark:bg-gray-700" {...props} />,
+        thead: ({ node, ...props }) => (
+          <thead className="bg-gray-100 dark:bg-gray-700" {...props} />
+        ),
         tbody: ({ children, ...props }: any) => (
           <tbody
             {...props}
@@ -258,11 +174,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             {...props}
           />
         ),
-        // 强调文本
         strong: ({ node, ...props }) => (
           <strong className="font-semibold" {...props} />
         ),
-        em: ({ node, ...props }) => <em className="italic" {...props} />,
+        em: ({ node, ...props }) => <em {...props} />,
       }}
     >
       {content}

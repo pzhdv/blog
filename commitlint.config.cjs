@@ -6,7 +6,7 @@ module.exports = {
     'header-max-length': [2, 'always', 108], // 标题最大108字符
     'type-case': [0], // 不检查类型大小写
     'type-empty': [2, 'never'], // 禁止类型为空
-    'scope-empty': [2, 'never'], // 禁止作用域为空
+    'scope-empty': [0], // 禁止作用域为空
     'scope-case': [0], // 不检查作用域大小写
     'subject-full-stop': [2, 'never'], // 禁止描述以句号结尾
     'subject-case': [0], // 不检查描述大小写（允许中文）

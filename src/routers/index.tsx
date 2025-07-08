@@ -1,13 +1,13 @@
 import { createBrowserRouter } from 'react-router-dom'
-
 import Layout from '@/layout'
+import Error404 from '@/pages/Error404'
+
 import Home from '@/pages/Home'
 import Category from '@/pages/Category'
 import About from '@/pages/About'
 import BlogDetail from '@/pages/BlogDetail'
-import Error404 from '@/pages/Error404'
 
-const routes = createBrowserRouter([
+const router = createBrowserRouter([
   {
     path: '/',
     element: <Layout />,
@@ -30,11 +30,8 @@ const routes = createBrowserRouter([
       },
     ],
   },
-
-  {
-    path: '*',
-    element: <Error404 />, // 404 页面
-  },
+  // 顶层兜底404
+  { path: '*', element: <Error404 /> },
 ])
 
-export default routes
+export default router
