@@ -58,6 +58,7 @@ export default function AboutPage() {
                   <a
                     href={method.value}
                     target="_blank"
+                    rel="noopener noreferrer"
                     className="text-sm text-gray-600 dark:text-gray-400"
                   >
                     {method.value}

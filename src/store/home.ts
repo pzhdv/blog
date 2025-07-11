@@ -152,7 +152,7 @@ const storeCreator: StateCreator<State & Actions> = (set, get) => ({
       console.log('上拉加载更多')
       set({ loading: true })
       // 模拟网络延迟 产生加载动画
-      await new Promise(resolve => setTimeout(resolve, 300))
+      await new Promise(resolve => setTimeout(resolve, 500))
       const params = {
         ...queryParams,
         pageNum: pageNum + 1,

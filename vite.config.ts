@@ -81,7 +81,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
     },
     build: {
       // 生产环境启用代码压缩，开发环境不压缩
-      minify: isProduction ? 'terser' : false,
+      minify: isProduction ? ('terser' as const) : false,
 
       // 设置 chunk 大小警告阈值（单位 KB）
       // 超过该值会输出警告，但不中断构建
@@ -111,7 +111,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
          * - 'strict': 保持原始导出签名（最佳 Tree-Shaking）
          * - 确保组件库按需导入时能正确被优化
          */
-        preserveEntrySignatures: 'strict',
+        preserveEntrySignatures: 'strict' as const,
       },
 
       // Terser 压缩配置（仅在生产环境生效）
@@ -137,32 +137,35 @@ export default defineConfig(({ mode }: ConfigEnv) => {
   }
 })
 
-// 优化后的分块策略
+// 分块策略
 function createOptimizedChunks(): (id: string) => string | undefined {
   const cache = new Map<string, string>()
 
-  // 小依赖集合（<1KB）
-  const smallDeps = new Set<string>([])
-
   // 主依赖分组（按功能聚合）
   const groups = {
+    // React 核心
     reactCore: new Set(['react', 'react-dom', 'scheduler']),
+    // 路由
     routing: new Set(['react-router', '@remix-run/router', 'react-router-dom']),
+    // 状态管理
+    store: new Set(['zustand']),
+    // 数据请求与处理
+    data: new Set(['axios', 'qs', 'object-hash']),
+    // 日期工具库
+    date: new Set(['date-fns']),
+    // Markdown 渲染
     markdown: new Set([
       'react-markdown',
+      'rehype-sanitize',
       'remark-gfm',
-      'rehype-raw',
       'rehype-external-links',
     ]),
-    syntax: new Set(['react-syntax-highlighter', 'refractor', 'highlight.js']),
-    data: new Set(['axios', 'qs', 'object-hash']),
-    date: new Set(['date-fns']),
-    store: new Set(['zustand']),
-    micromark: new Set(), // 用于 micromark 开头的依赖
-    hast: new Set(), // 用于 hast 开头的依赖
-    small: new Set(), // 用于小依赖
-    common: new Set(), // 用于收集其他依赖
+    // 语法高亮
+    syntax: new Set(['react-syntax-highlighter', 'refractor']),
   }
+
+  // 小依赖集合（<1KB）
+  const smallDeps = new Set<string>([])
 
   return (id: string) => {
     if (!id.includes('node_modules')) return
@@ -179,15 +182,15 @@ function createOptimizedChunks(): (id: string) => string | undefined {
       }
     }
 
-    // 2.配置开头的依赖
-    // 2.1 匹配 micromark 开头的依赖
-    if (!chunkName && fullName.startsWith('micromark')) {
-      chunkName = 'vendor-micromark' // 将 micromark 开头的依赖分配到 vendor-micromark
-    }
-
-    //  2.2 匹配 hast 开头的依赖
-    if (!chunkName && fullName.startsWith('hast')) {
-      chunkName = 'vendor-hast' // 将 hast 开头的依赖分配到 vendor-hast
+    // 2. 匹配由许多小包组成的生态系统（前缀匹配）
+    if (!chunkName) {
+      if (fullName.startsWith('micromark')) {
+        chunkName = 'vendor-micromark'
+      } else if (fullName.startsWith('hast')) {
+        chunkName = 'vendor-hast'
+      } else if (fullName.startsWith('highlight.js')) {
+        chunkName = 'vendor-highlight'
+      }
     }
 
     // 3. 处理小依赖
@@ -197,7 +200,6 @@ function createOptimizedChunks(): (id: string) => string | undefined {
 
     // 4. 处理未匹配的依赖
     if (!chunkName) {
-      // chunkName = `vendor-${fullName}`
       chunkName = 'vendor-common' // 将未匹配的依赖分配到 vendor-common
     }
 

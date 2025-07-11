@@ -10,7 +10,7 @@ import type {
 
 import { useCategoryStore } from '@/store'
 
-import { collectCategoryIds } from '@/utils/CategoryPageUtils'
+import { collectCategoryIds } from '@/utils/categoryPageUtils'
 
 import IconFont from '@/components/IconFont'
 import PcPagination from '@/components/PcPagination'
