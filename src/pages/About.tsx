@@ -1,37 +1,21 @@
-import {
-  queryJobExperienceList,
-  queryBlogAuthor,
-  queryBlogMission,
-} from '@/api'
+import { useEffect } from 'react'
+import { differenceInYears } from 'date-fns'
+
+import { useAboutStore } from '@/store'
+
 import IconFont from '@/components/IconFont'
 import useDeviceType from '@/hooks/useDeviceType'
-import type {
-  Achievement,
-  BlogAuthor,
-  BlogMission,
-  JobExperience,
-  MissionPoint,
-} from '@/types'
-import { differenceInYears } from 'date-fns'
-import { useEffect, useState } from 'react'
-
-interface ContactMethodType {
-  name: string
-  value: string
-  iconClass: string
-  url?: string
-}
 
 export default function AboutPage() {
   const isMobile = useDeviceType()
-  const [blogAuthor, setBlogAuthor] = useState<BlogAuthor | null>(null) // 作者个人信息
-  const [contactMethodList, setContactMethodList] = useState<
-    ContactMethodType[]
-  >([]) // 联系方式列表
-  const [blogMission, setBlogMission] = useState<BlogMission>() // 博客使命
-  const [jobExperienceList, setJobExperienceList] = useState<JobExperience[]>(
-    [],
-  ) // 工作经历
+  const {
+    blogAuthor, // 作者信息
+    contactMethodList, // 联系方式列表
+    blogMission, // 博客使命
+    jobExperienceList, // 工作经历
+    hasQuery, // 是否已经查询过数据，用于控制是否需要重新加载数据
+    fetchAllData, // 获取所有数据的方法，用于并行加载作者信息、博客使命和工作经历
+  } = useAboutStore()
 
   // 计算年龄
   const calculateAge = (birthDate: string | undefined) => {
@@ -41,86 +25,12 @@ export default function AboutPage() {
   }
 
   useEffect(() => {
-    // !todo 查询博客作者信息数据
-    const getBlogAuthor = async () => {
-      try {
-        const res = await queryBlogAuthor()
-        setBlogAuthor(res.data)
-        const contactMethods = [
-          {
-            name: 'GitHub',
-            value: res.data.github,
-            iconClass: 'iconfont icon-github',
-            url: res.data.github,
-          },
-          {
-            name: 'Email',
-            value: res.data.email,
-            iconClass: 'iconfont icon-email',
-          },
-          {
-            name: 'Phone',
-            value: res.data.phone,
-            iconClass: 'iconfont icon-phone',
-          },
-          {
-            name: 'Website',
-            value: res.data.website,
-            iconClass: 'iconfont icon-website',
-            url: res.data.website,
-          },
-        ]
-        setContactMethodList(contactMethods)
-      } catch (error) {
-        console.error('queryBlogAuthor', queryBlogAuthor)
-      }
+    if (!hasQuery) {
+      fetchAllData()
     }
-    // !todo 查询博客使命信息数据
-    const getBlogMission = async () => {
-      try {
-        const res = await queryBlogMission()
-        if (!res.data) return
-        const { missionPointListStr } = res.data
-
-        // 数据加工：将字符串拆分为数组
-        const missionPointList: MissionPoint[] = missionPointListStr
-          ? missionPointListStr
-              .split('&')
-              .filter(Boolean)
-              .map(missionPoint => ({ missionPoint }))
-          : []
-
-        // 更新状态
-        setBlogMission({ ...res.data, missionPointList })
-      } catch (error) {
-        console.log('error', error)
-      }
-    }
-
-    // todo 查询工作经历列表
-    const getJobExperienceList = async () => {
-      try {
-        const res = await queryJobExperienceList()
-
-        if (!Array.isArray(res.data)) return
-
-        const list = res.data.map(experience => {
-          const achievementList: Achievement[] =
-            experience.achievementListStr
-              ?.split('&')
-              .map(achievement => ({ achievement })) ?? []
-          return { ...experience, achievementList }
-        })
-
-        setJobExperienceList(list)
-      } catch (error) {
-        console.log(error)
-      }
-    }
-    getBlogAuthor()
-    getBlogMission()
-    getJobExperienceList()
-  }, [])
+    window.scrollTo(0, 0)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasQuery])
 
   // 渲染联系卡片
   const renderContactCard = () => {
@@ -167,7 +77,7 @@ export default function AboutPage() {
 
   return (
     // grid-cols-3 三等份划分
-    <div className="grid md:grid-cols-3 gap-8">
+    <div className="grid md:grid-cols-3 gap-8 min-h-[90vh] md:min-h-0">
       {/* 左侧主内容 */} {/*col-span-1 占父盒子1等分 */}
       <div className="md:col-span-1 space-y-6">
         {/* 个人信息卡片 */}

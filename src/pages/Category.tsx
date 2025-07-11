@@ -3,50 +3,88 @@ import { useNavigate } from 'react-router-dom'
 
 import useDeviceType from '@/hooks/useDeviceType'
 
-import {
-  queryCategoryPageArticleList,
-  queryCategoryListWithArticleCount,
-} from '@/api'
-
 import type {
-  Article,
   ArticleCategory,
   CategoryPageQueryArticleListParams as QueryParams,
 } from '@/types'
 
+import { useCategoryStore } from '@/store'
+
+import { collectCategoryIds } from '@/utils/CategoryPageUtils'
+
 import IconFont from '@/components/IconFont'
 import PcPagination from '@/components/PcPagination'
 import InfiniteScroll from '@/components/InfiniteScroll'
-import Skeleton from '@/components/Skeleton'
 
 const ROOT_CATEGORY_ID = 1 // 树根节点id为1 查询分类列表不需要查出树根
-const PC_PageSize = 4 //PC端默认页大小
+const PC_PageSize = 2 //PC端默认页大小
 const Mobile_PageSize = 4 //移动端默认页大小
 
 export default function BlogCategoryPage() {
   const isMobile = useDeviceType()
   const navigate = useNavigate()
-  const [selectedPath, setSelectedPath] = useState<string[]>([])
-  const [articleCategoryTreeList, setArticleCategoryTreeList] = useState<
-    ArticleCategory[]
-  >([]) // 分类树列表
-  const [articleCategoryList, setArticleCategoryList] = useState<
-    ArticleCategory[]
-  >([]) // 分类列表 树转换的列表
-  const [expandedCategories, setExpandedCategories] = useState<
-    Record<string, boolean>
-  >({}) // 展开/折叠的分类
-  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null) // 激活的分类id 高亮
-  const [articleList, setArticleList] = useState<Article[]>([]) // 文章数据
+
+  const {
+    articleCategoryTreeList, // 分类树列表，表示文章分类的层级结构
+    articleCategoryList, // 分类列表，将分类树转换为扁平化的列表
+
+    hasInitSearch, // 是否已经初始化查询过了
+    initFetch, // 初始化查询 查询分类树 查询文章列表
+
+    articleList, // 文章列表，存储当前分类下的文章
+    totalPage, // 总分页数，表示文章列表的总页数
+    currentPage, // 当前页码，用于分页显示文章
+    hasMore, // 是否还有更多文章，用于支持“加载更多”功能
+    loading, // 加载状态，表示是否正在加载数据
+    queryArticleList, // 查询文章列表的方法
+    loadMore, // 加载更多文章的方法
+
+    isMobile: isMobileDevice, // 是否是移动端，用于区分移动端和 PC 端的行为
+    setIsMobile, // 设置是否是移动端
+
+    isFromDetailPage, // 是否是从详情页面返回，用于处理返回逻辑
+    setIsFromDetailPage, // 设置是否是从详情页面返回
+
+    expandedCategories, // 展开/折叠的分类，记录哪些分类被展开或折叠
+    setExpandedCategories, // 设置展开/折叠的分类
+
+    activeCategoryId, // 当前激活的分类 ID，用于标识当前选中的分类
+    setActiveCategoryId, // 设置当前激活分类的Id
+
+    currentCategoryPathList, // 当前路径，表示用户在分类树中选择的路径
+    setCurrentCategoryPathList, // 设置当前路径
+
+    scrollTop, // 滚动高度，用于记录用户滚动的位置
+    setScrollTop, // 设置滚动高度
+
+    hasQueryArticleList, // 是否已经查询过文章列表，用于避免重复查询
+    setHasQueryArticleList, // 设置是否已经查询过分类和文章列表
+  } = useCategoryStore()
+
   const [queryParams, setQueryParams] = useState<QueryParams>({
     pageSize: isMobile ? Mobile_PageSize : PC_PageSize,
-    pageNum: 1,
-    categoryIds: [], // 点击的分类id列表 包含子分类
-  }) // 文章列表
-  const [totalPage, setTotalPage] = useState<number>(0) // 总分页数
-  const [currentPage, setCurrentPage] = useState<number>(1) // 当前页码
-  const [loading, setLoading] = useState(false) // 默认加载状态 防止渲染空数据
-  const [hasMore, setHasMore] = useState(false)
+    pageNum: currentPage,
+    categoryIds: [], // 点击的分类id列表(包含子分类id)
+  })
+
+  // 初始化查询
+  useEffect(() => {
+    if (!hasInitSearch) {
+      initFetch(ROOT_CATEGORY_ID, queryParams)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasInitSearch, queryParams])
+
+  // 实时响应式 PC-移动
+  useEffect(() => {
+    if (hasQueryArticleList && isMobile !== isMobileDevice) {
+      //触发更新 查询文章列表
+      setHasQueryArticleList(false)
+      setIsMobile(isMobile)
+      setQueryParams(pre => ({ ...pre, pageNum: 1 }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasQueryArticleList, isMobile, isMobileDevice])
 
   // 处理分类树默认展开折叠 PC - 全部展开  Mobile - 全部折叠
   useEffect(() => {
@@ -60,7 +98,7 @@ export default function BlogCategoryPage() {
           },
           {} as Record<string, boolean>,
         )
-        setExpandedCategories(allCollapsed)
+        setExpandedCategories({ ...allCollapsed, ...expandedCategories })
       } else {
         // PC - 全部展开
         const allExpanded = articleCategoryList.reduce(
@@ -75,86 +113,36 @@ export default function BlogCategoryPage() {
     }
     // 处理展开折叠
     handleCategoriesExpansion()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, articleCategoryList])
 
-  // 查询分类树 数据
+  // 处理位置
   useEffect(() => {
-    const searchCategoryListWithArticleCount = async () => {
-      try {
-        const res = await queryCategoryListWithArticleCount(ROOT_CATEGORY_ID)
-        if (res.data && Array.isArray(res.data)) {
-          const treeCategoryList = res.data
-          setArticleCategoryTreeList(treeCategoryList)
-          setArticleCategoryList(treeDataToListData(treeCategoryList))
-          // 默认激活第一个分类
-          if (treeCategoryList.length > 0) {
-            setActiveCategoryId(treeCategoryList[0].categoryId)
-            setSelectedPath([treeCategoryList[0].categoryName])
-          }
-        } else {
-          // 如果没有根节点或根节点没有子分类，设置为空数组
-          setArticleCategoryTreeList([])
-        }
-      } catch (error) {
-        console.error(error)
+    // 如果是移动端
+    if (isMobile) {
+      // 如果是从详情页面返回的，则滚动到离开页面之前的位置
+      if (isFromDetailPage) {
+        window.scrollTo(0, scrollTop)
+      } else {
+        // 否则，滚动到顶部
+        window.scrollTo(0, 0)
       }
     }
-    searchCategoryListWithArticleCount()
-  }, [])
+    // 在组件卸载时，重置 isFromDetailPage 状态
+    return () => {
+      setIsFromDetailPage(false)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMobile, scrollTop, isFromDetailPage])
 
   // 查询文章列表
   useEffect(() => {
-    const getArticleList = async () => {
-      try {
-        setLoading(true)
-        const res = await queryCategoryPageArticleList(queryParams)
-        // 更新总页数和当前页
-        setTotalPage(res.data.pages)
-        setCurrentPage(res.data.current)
-        if (isMobile) {
-          //刷新或初始化查询
-          if (queryParams.pageNum === 1) {
-            setArticleList(res.data.records)
-          } else {
-            // 追加新数据
-            setArticleList(pre => [...pre, ...res.data.records])
-          }
-          // 判断是否还有更多数据
-          setHasMore(res.data.current < res.data.pages)
-        } else {
-          // PC端
-          setArticleList(res.data.records)
-        }
-      } catch (error) {
-        console.error('queryArticleList:', error)
-      } finally {
-        setLoading(false)
-      }
+    // 已经查询过就不在查
+    if (!hasQueryArticleList) {
+      queryArticleList(queryParams) // 查询文章列表
     }
-    getArticleList()
-  }, [isMobile, queryParams])
-
-  // 将树形结构的分类数据转换为扁平化的列表数据
-  const treeDataToListData = (
-    treeData: ArticleCategory[],
-  ): ArticleCategory[] => {
-    const listData: ArticleCategory[] = []
-
-    // 递归遍历树形结构
-    const traverse = (categories: ArticleCategory[]): void => {
-      categories.forEach(category => {
-        // 创建一个新对象，去除 children 属性
-        const { children, ...categoryWithoutChildren } = category
-        listData.push(categoryWithoutChildren) // 将去除 children 的分类添加到列表中
-        if (category.children && category.children.length > 0) {
-          traverse(category.children) // 递归处理子分类
-        }
-      })
-    }
-
-    traverse(treeData) // 从顶层分类开始递归遍历
-    return listData
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryParams, hasQueryArticleList])
 
   // 获取分类的完整路径
   const getCategoryPath = (
@@ -182,70 +170,48 @@ export default function BlogCategoryPage() {
     return path // 返回完整的路径
   }
 
-  // 收集该分类及所有子分类的 categoryId
-  const collectCategoryIds = (category: ArticleCategory): number[] => {
-    const ids: number[] = [category.categoryId] // 初始化数组，包含当前分类的 categoryId
-
-    // 递归收集子分类的 categoryId
-    const traverse = (categories: ArticleCategory[]): void => {
-      categories.forEach(child => {
-        ids.push(child.categoryId) // 将子分类的 categoryId 添加到数组中
-        if (child.children && child.children.length > 0) {
-          traverse(child.children) // 递归处理子分类
-        }
-      })
-    }
-
-    if (category.children && category.children.length > 0) {
-      traverse(category.children) // 从当前分类的子分类开始递归
-    }
-
-    return ids // 返回包含当前分类及所有子分类的 categoryId 数组
-  }
-
   // ! 分页按钮被被点击
   const handlePageButtonClick = (pageNum: number) => {
+    setHasQueryArticleList(false)
     setQueryParams(pre => ({ ...pre, pageNum }))
   }
 
   // !处理分类点击事件
   const handleCategoryClick = (category: ArticleCategory) => {
-    //  1、更新激活状态
+    // 1、获取分类的完整路径
+    const fullPath = getCategoryPath(category, articleCategoryList)
+    setCurrentCategoryPathList(fullPath)
+
+    //  2、更新激活Id
     setActiveCategoryId(category.categoryId)
 
-    // 2、获取分类的完整路径
-    const fullPath = getCategoryPath(category, articleCategoryList)
-    setSelectedPath(fullPath)
-
-    // 2、收集该分类及所有子分类ids
+    // 3、获取当前分类及子分类的id列表 用于按分类查询文章列表
     const categoryIds = collectCategoryIds(category)
+
+    //  4、查询文章列表 从第一页开始
     setQueryParams(pre => ({ ...pre, categoryIds, pageNum: 1 }))
+    setHasQueryArticleList(false)
   }
 
   //  ! 上拉加载更多事件
   const handleLoadMore = async () => {
     if (loading) return
     console.log('上拉加载更多')
-    setLoading(true)
-    if (!loading && hasMore) {
-      setQueryParams(prev => ({
-        ...prev,
-        pageNum: prev.pageNum + 1,
-      }))
-    }
+    loadMore(queryParams)
   }
 
   // !跳转文章详情
   const toDetailPage = (articleId: number) => {
+    setScrollTop(window.scrollY) // 保存离开之前滚动位置
     navigate(`/detail/${articleId}`, { state: { from: 'category' } })
   }
 
   // !切换分类展开/折叠状态
   const toggleCategoryExpansion = (categoryId: number) => {
-    setExpandedCategories(prev => ({
-      ...prev,
-      [categoryId]: !prev[categoryId],
-    }))
+    setExpandedCategories({
+      ...expandedCategories,
+      [categoryId]: !expandedCategories[categoryId],
+    })
   }
 
   // 渲染左侧分类
@@ -339,11 +305,11 @@ export default function BlogCategoryPage() {
   const renderBreadcrumb = () => {
     return (
       <div className="mb-6 flex items-center overflow-x-auto pb-2">
-        {selectedPath.map((path, index) => (
+        {currentCategoryPathList.map((path, index) => (
           <div key={index} className="flex items-center">
             {index > 0 && <span className="mx-2 text-gray-400">/</span>}
             <span
-              className={`text-sm dark:text-gray-300 ${index === selectedPath.length - 1 ? 'font-medium' : ''}`}
+              className={`text-sm dark:text-gray-300 ${index === currentCategoryPathList.length - 1 ? 'font-medium' : ''}`}
             >
               {path}
             </span>
@@ -356,7 +322,7 @@ export default function BlogCategoryPage() {
   // 渲染文章空列表显示状态
   const renderArticleListEmpty = () => {
     if (loading) {
-      return <Skeleton />
+      return
     }
     return (
       articleList.length === 0 && (
@@ -396,7 +362,7 @@ export default function BlogCategoryPage() {
           </svg>
           <h3 className="text-xl font-semibold mb-4">暂无文章列表</h3>
           <p className="text-sm">
-            当前没有文章可供显示。请稍后再来查看，或者尝试其他分类。
+            当前分类没有文章可供显示，请尝试一下其它分类。
           </p>
         </div>
       )
@@ -449,7 +415,7 @@ export default function BlogCategoryPage() {
   }
 
   return (
-    <div className="md:flex md:gap-8 max-w-7xl mx-auto px-4 py-6">
+    <div className="md:flex md:gap-8 max-w-7xl mx-auto px-4 py-6 min-h-[90vh] md:min-h-[50vh]">
       {/* 分类侧边栏 */}
       {renderLeftCategory()}
 
@@ -470,6 +436,7 @@ export default function BlogCategoryPage() {
             <InfiniteScroll
               loadMore={handleLoadMore}
               hasMore={hasMore}
+              loading={loading}
               threshold={50}
             />
           )

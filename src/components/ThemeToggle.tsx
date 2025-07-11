@@ -1,10 +1,10 @@
-import { useTheme } from '@/context/ThemeContext'
+import { useAppStateContext } from '@/context/AppStateContext'
 
 /**
  * @description:主题切换按钮组件
  */
 function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme()
+  const { theme, toggleTheme } = useAppStateContext()
   return (
     <button
       onClick={() => toggleTheme()}

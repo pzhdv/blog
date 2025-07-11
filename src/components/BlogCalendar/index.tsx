@@ -7,7 +7,8 @@ import {
   isSameMonth,
   isSameDay,
 } from 'date-fns'
-import { useTheme } from '@/context/ThemeContext'
+
+import { useAppStateContext } from '@/context/AppStateContext'
 
 interface CalendarProps {
   /**
@@ -22,7 +23,7 @@ interface CalendarProps {
 }
 
 const BlogCalendar = ({ posts, onDayClick }: CalendarProps) => {
-  const { theme } = useTheme()
+  const { theme } = useAppStateContext()
   const darkMode = theme === 'dark'
 
   const [currentDate, setCurrentDate] = useState(new Date())

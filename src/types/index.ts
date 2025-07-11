@@ -105,3 +105,13 @@ export interface CategoryPageQueryArticleListParams {
   pageNum: number // 当前页码
   pageSize: number // 页大小
 }
+
+/**
+ * 联系方式数据类型
+ */
+export interface ContactMethodType {
+  name: string
+  value: string
+  iconClass: string
+  url?: string
+}

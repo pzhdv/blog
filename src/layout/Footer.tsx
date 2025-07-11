@@ -10,13 +10,13 @@ export default function Footer() {
           >
             GitHub
           </a>
-          <a
+          {/* <a
             href="https://gitee.com/panzonghui"
             target="_blank"
             className="hover:text-blue-600 dark:hover:text-blue-400"
           >
             Gitee
-          </a>
+          </a> */}
           <a
             href="https://juejin.cn/user/1363841737818167/posts"
             target="_blank"

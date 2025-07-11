@@ -6,7 +6,6 @@ import tailwindcss from '@tailwindcss/vite'
 import viteCompression from 'vite-plugin-compression'
 import { visualizer } from 'rollup-plugin-visualizer'
 
-// https://vite.dev/config/
 export default defineConfig(({ mode }: ConfigEnv) => {
   const env = loadEnv(mode, process.cwd())
   // 模式判断
@@ -23,7 +22,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           threshold: 10240, // 大于10kb的文件才压缩
           algorithm: 'brotliCompress', // 或 'brotli'
           ext: '.br',
-          deleteOriginFile: true, // 生产环境建议改为 false 保留源文件 以确保兼容性
+          deleteOriginFile: false, // 生产环境建议改为 false 保留源文件 以确保兼容性
         }),
 
       // Gzip 压缩配置 生产环境启用
@@ -33,7 +32,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
           threshold: 10240, // 大于10kb的文件才压缩
           algorithm: 'gzip', // 压缩算法
           ext: '.gz', // 生成的压缩文件后缀
-          deleteOriginFile: true, // 生产环境建议改为 false 保留源文件 以确保兼容性
+          deleteOriginFile: false, // 生产环境建议改为 false 保留源文件 以确保兼容性
         }),
 
       isProduction &&
@@ -81,36 +80,140 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       ),
     },
     build: {
-      // outDir: 'blog_dist', // 确保与Nginx配置一致
-      minify: 'terser', // 使用 Terser 进行压缩
-      terserOptions: {
-        compress: {
-          drop_console: ['log', 'info'], // 只移除 console.log 和 console.info
-          drop_debugger: true, // 移除所有 debugger 语句
-          pure_funcs: ['console.log', 'console.info'], // 双重保险（可选）
-        },
-        format: {
-          comments: false, // 移除注释
-        },
-      },
+      // 生产环境启用代码压缩，开发环境不压缩
+      minify: isProduction ? 'terser' : false,
+
+      // 设置 chunk 大小警告阈值（单位 KB）
+      // 超过该值会输出警告，但不中断构建
+      chunkSizeWarningLimit: 1024, // 1MB
+
       rollupOptions: {
         output: {
-          //  分包策略
-          manualChunks(id) {
-            // if (id.includes('node_modules')) {
-            //   return id
-            //     .toString()
-            //     .split('node_modules/')[1]
-            //     .split('/')[0]
-            //     .toString()
-            // }
-            return 'vendor-all'
-          },
-          chunkFileNames: 'js/[name]-[hash:8].js', // 分包文件命名
-          entryFileNames: 'js/[name]-[hash].js', // 入口文件命名
-          assetFileNames: 'assets/[name]-[hash][extname]', // 静态资源命名
+          /**
+           * 自定义分包策略
+           * - 将 node_modules 依赖按规则分组
+           * - 避免单个 vendor 文件过大
+           */
+          manualChunks: createOptimizedChunks(),
+
+          // 非入口 chunk 的命名规则（限制 hash 长度）
+          chunkFileNames: 'js/[name]-[hash:8].js',
+
+          // 入口 chunk 的命名规则（完整 hash）
+          entryFileNames: 'js/[name]-[hash].js',
+
+          // 静态资源（图片/字体等）命名规则
+          assetFileNames: 'assets/[name]-[hash][extname]',
+        },
+
+        /**
+         * 入口模块签名保留模式
+         * - 'strict': 保持原始导出签名（最佳 Tree-Shaking）
+         * - 确保组件库按需导入时能正确被优化
+         */
+        preserveEntrySignatures: 'strict',
+      },
+
+      // Terser 压缩配置（仅在生产环境生效）
+      terserOptions: {
+        compress: {
+          // 禁用全局移除 console（改为用 pure_funcs 精确控制）
+          drop_console: false,
+
+          // 精确指定要移除的 console 方法
+          pure_funcs: isProduction
+            ? ['console.log', 'console.info', 'console.debug', 'console.trace']
+            : [],
+
+          // 始终移除 debugger
+          drop_debugger: isProduction,
+        },
+        format: {
+          // 移除所有注释（包括法律声明）
+          comments: false,
         },
       },
     },
   }
 })
+
+// 优化后的分块策略
+function createOptimizedChunks(): (id: string) => string | undefined {
+  const cache = new Map<string, string>()
+
+  // 小依赖集合（<1KB）
+  const smallDeps = new Set<string>([])
+
+  // 主依赖分组（按功能聚合）
+  const groups = {
+    reactCore: new Set(['react', 'react-dom', 'scheduler']),
+    routing: new Set(['react-router', '@remix-run/router', 'react-router-dom']),
+    markdown: new Set([
+      'react-markdown',
+      'remark-gfm',
+      'rehype-raw',
+      'rehype-external-links',
+    ]),
+    syntax: new Set(['react-syntax-highlighter', 'refractor', 'highlight.js']),
+    data: new Set(['axios', 'qs', 'object-hash']),
+    date: new Set(['date-fns']),
+    store: new Set(['zustand']),
+    micromark: new Set(), // 用于 micromark 开头的依赖
+    hast: new Set(), // 用于 hast 开头的依赖
+    small: new Set(), // 用于小依赖
+    common: new Set(), // 用于收集其他依赖
+  }
+
+  return (id: string) => {
+    if (!id.includes('node_modules')) return
+    if (cache.has(id)) return cache.get(id)
+
+    const { fullName } = parsePackageId(id)
+    let chunkName: string | undefined
+
+    // 1. 匹配主依赖
+    for (const [group, libs] of Object.entries(groups)) {
+      if (libs.has(fullName)) {
+        chunkName = `vendor-${group}`
+        break
+      }
+    }
+
+    // 2.配置开头的依赖
+    // 2.1 匹配 micromark 开头的依赖
+    if (!chunkName && fullName.startsWith('micromark')) {
+      chunkName = 'vendor-micromark' // 将 micromark 开头的依赖分配到 vendor-micromark
+    }
+
+    //  2.2 匹配 hast 开头的依赖
+    if (!chunkName && fullName.startsWith('hast')) {
+      chunkName = 'vendor-hast' // 将 hast 开头的依赖分配到 vendor-hast
+    }
+
+    // 3. 处理小依赖
+    if (!chunkName && smallDeps.has(fullName)) {
+      chunkName = 'vendor-small'
+    }
+
+    // 4. 处理未匹配的依赖
+    if (!chunkName) {
+      // chunkName = `vendor-${fullName}`
+      chunkName = 'vendor-common' // 将未匹配的依赖分配到 vendor-common
+    }
+
+    cache.set(id, chunkName)
+    return chunkName
+  }
+}
+
+// 包解析器
+function parsePackageId(id: string): { fullName: string } {
+  const normalizedPath = id.replace(/\\/g, '/')
+  const scopedMatch = normalizedPath.match(
+    /node_modules\/(@[^/]+\/[^/]+)(?:\/|$)/,
+  )
+  const unscopedMatch = normalizedPath.match(/node_modules\/([^/]+)(?:\/|$)/)
+  return {
+    fullName: scopedMatch?.[1] || unscopedMatch?.[1] || '',
+  }
+}

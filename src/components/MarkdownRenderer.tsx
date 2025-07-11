@@ -2,16 +2,19 @@
 import React, { useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import rehypeRaw from 'rehype-raw'
+import remarkGfm from 'remark-gfm'
+import rehypeExternalLinks from 'rehype-external-links'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 // 主题查看 https://react-syntax-highlighter.github.io/react-syntax-highlighter/demo/prism.html
 import {
   oneDark,
   materialLight,
 } from 'react-syntax-highlighter/dist/esm/styles/prism' // 高亮主题
-import remarkGfm from 'remark-gfm'
-import rehypeExternalLinks from 'rehype-external-links'
-import { useTheme } from '@/context/ThemeContext'
+
+import { useAppStateContext } from '@/context/AppStateContext'
+
 import IconFont from './IconFont'
+
 // npm i react-markdown react-syntax-highlighter remark-gfm rehype-external-links rehype-raw
 // npm i -D @types/react-syntax-highlighter
 interface MarkdownRendererProps {
@@ -24,7 +27,7 @@ interface CodeBlockProps {
 }
 // 代码组件部分
 const CodeBlock: React.FC<CodeBlockProps> = ({ language, codeString }) => {
-  const { theme } = useTheme()
+  const { theme } = useAppStateContext()
   const darkMode = theme === 'dark'
   const [copied, setCopied] = useState(false) // 复制状态
 
@@ -71,7 +74,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ language, codeString }) => {
 }
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
-  const { theme } = useTheme()
+  const { theme } = useAppStateContext()
   const isDarkMode = theme === 'dark'
   return (
     <ReactMarkdown

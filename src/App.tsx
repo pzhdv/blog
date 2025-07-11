@@ -2,14 +2,14 @@ import { RouterProvider } from 'react-router-dom'
 import routes from '@/routers'
 
 import GlobalErrorBoundary from '@/components/GlobalErrorBoundary'
-import { ThemeProvider } from './context/ThemeContext'
+import { AppStateProvider } from './context/AppStateContext'
 
 function App() {
   return (
     <GlobalErrorBoundary showStackTrace={import.meta.env.DEV}>
-      <ThemeProvider>
+      <AppStateProvider>
         <RouterProvider router={routes} future={{ v7_startTransition: true }} />
-      </ThemeProvider>
+      </AppStateProvider>
     </GlobalErrorBoundary>
   )
 }

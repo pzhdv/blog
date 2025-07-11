@@ -7,12 +7,15 @@ import Header from './Header'
 export default function RootLayout() {
   // 动态计算导航栏高度并设置页面主体的 padding-top
   useEffect(() => {
-    // 头部固定
-    const navHeight = document.querySelector('nav')?.clientHeight || 0
-    document
-      .querySelector('main')
-      ?.style.setProperty('padding-top', `${navHeight}px`)
+    const navElement = document.querySelector('nav')
+    const mainElement = document.querySelector('main')
+
+    if (navElement && mainElement) {
+      const navHeight = navElement.clientHeight
+      mainElement.style.setProperty('padding-top', `${navHeight}px`)
+    }
   }, [])
+
   return (
     <div
       className={`min-h-screen w-full transition-colors duration-300 bg-gray-50 dark:bg-gray-900 `}
