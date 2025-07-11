@@ -35,7 +35,6 @@ type State = {
   hasMore: boolean // 是否还有更多文章，用于支持“加载更多”功能
   scrollTop: number // 滚动高度，用于记录用户滚动的位置
 
-  isMobile: boolean // 是否是移动端，用于区分移动端和 PC 端的行为
   isFromDetailPage: boolean // 是否是从详情页面返回，用于处理返回逻辑
 }
 
@@ -51,9 +50,7 @@ type Actions = {
   queryArticleList: (queryParams: QueryParams) => void // 查询文章列表，根据查询参数获取文章
   loadMore: (queryParams: QueryParams) => void // 加载更多文章，根据查询参数获取更多文章
   setScrollTop: (scrollTop: number) => void // 设置滚动高度
-  setHasQueryArticleList: (hasQueryArticleList: boolean) => void // 设置是否已经查询过分类和文章列表
 
-  setIsMobile: (isMobile: boolean) => void // 设置是否是移动端
   setIsFromDetailPage: (isFromDetailPage: boolean) => void // 设置是否是从详情页面返回
 }
 
@@ -77,7 +74,6 @@ const initialState: State = {
   hasMore: false,
   scrollTop: 0,
 
-  isMobile: false,
   isFromDetailPage: false,
 }
 
@@ -94,20 +90,17 @@ const storeCreator: StateCreator<State & Actions> = (set, get) => ({
   setExpandedCategories: expandedCategories => {
     set({ expandedCategories })
   },
-  setHasQueryArticleList: hasQueryArticleList => {
-    set({ hasQueryArticleList })
-  },
+
   setScrollTop: scrollTop => {
     set({ scrollTop })
   },
   setIsFromDetailPage: isFromDetailPage => {
     set({ isFromDetailPage })
   },
-  setIsMobile: isMobile => {
-    set({ isMobile })
-  },
+
   initFetch: async (parentId, queryParams) => {
     try {
+      console.log('查询分类及文字列表')
       const res = await queryCategoryListWithArticleCount(parentId)
       const articleCategoryTreeList = res.data || [] //分类树
       const articleCategoryList = treeDataToListData(articleCategoryTreeList) // 转换后的分类列表
@@ -180,7 +173,6 @@ const storeCreator: StateCreator<State & Actions> = (set, get) => ({
     try {
       const { loading, currentPage: pageNum } = get()
       if (loading) {
-        console.log('正在查询中')
         return
       }
       console.log('上拉加载更多')

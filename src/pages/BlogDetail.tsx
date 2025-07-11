@@ -43,7 +43,6 @@ const BlogDetail = () => {
       try {
         setLoading(true)
         const res = await queryArticleById(Number.parseInt(articleId as string))
-        console.log(res.data)
         setArticle(res.data)
       } catch (error) {
         console.error('查询文章详情页面错误:', error)

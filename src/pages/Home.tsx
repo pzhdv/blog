@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import useDeviceType from '@/hooks/useDeviceType'
@@ -33,39 +33,45 @@ export default function BlogHomepage() {
     loadMore, // 加载更多文章的方法
 
     hasQueryArticleList, // 是否已经查询过了文章列表数据，防止文章详情返回再次查询
-    setHasQueryArticleList, // 设置是否已经查询过文章列表
 
     scrollTop, // 滚动高度，用于记录用户滚动的位置
     setScrollTop, // 设置滚动高度的方法
-
-    isMobile: isMobileDevice, // 是否是移动端，用于区分移动端和 PC 端的行为
-    setIsMobile, // 设置是否是移动端的方法
 
     isFromDetailPage, // 是否是从详情页面返回，用于处理返回逻辑
     setIsFromDetailPage, // 设置是否是从详情页面返回的方法
   } = useHomeStore()
   const navigate = useNavigate()
   const isMobile = useDeviceType()
+  const previousIsMobileRef = useRef(isMobile) // 使用 useRef 跟踪上一次的设备状态，避免不必要的重新渲染
   const [activeTagId, setActiveTagId] = useState<number>() // 激活的标签Id
   const [queryParams, setQueryParams] = useState<QueryParams>({
     pageSize: isMobile ? Mobile_PageSize : PC_PageSize,
     pageNum: currentPage,
   })
 
-  // 实时响应式
+  // 实时响应式PC-移动 查询文章列表
   useEffect(() => {
-    if (hasQueryArticleList && isMobile !== isMobileDevice) {
-      // 查询文章列表
-      setQueryParams({
-        pageSize: isMobile ? Mobile_PageSize : PC_PageSize,
-        pageNum: 1,
-      })
-      setHasQueryArticleList(false)
-      setIsMobile(isMobile)
+    const isFirstLoading = !hasQueryArticleList // 是否是第一次加载
+    const deviceTypeHasChanged =
+      hasQueryArticleList && isMobile !== previousIsMobileRef.current // 设备是否切换
+
+    // 如果两个条件都不满足，则什么都不做
+    if (!isFirstLoading && !deviceTypeHasChanged) {
+      return
     }
 
+    //  更新设备状态
+    previousIsMobileRef.current = isMobile
+
+    // 准备新的查询参数并调用查询函数
+    const newParams = {
+      pageSize: isMobile ? Mobile_PageSize : PC_PageSize,
+      pageNum: 1, // 切换设备时、或第一次查询,重置到第一页
+    }
+    setQueryParams(newParams) // 更新本地 state
+    queryArticleList(newParams) // 调用查询函数查询文章列表
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasQueryArticleList, isMobile, isMobileDevice])
+  }, [hasQueryArticleList, isMobile])
 
   // 查询右边侧边栏数据
   useEffect(() => {
@@ -95,14 +101,17 @@ export default function BlogHomepage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, scrollTop, isFromDetailPage])
 
-  // 查询文章列表
-  useEffect(() => {
-    // 已经查询过就不再在查
-    if (!hasQueryArticleList) {
-      queryArticleList(queryParams) // 查询文章列表
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryParams, hasQueryArticleList])
+  // todo 通用的更新查询参数和文章列表请求
+  const updateAndRefetch = (newQueryPart: Partial<QueryParams>) => {
+    // 将新的查询参数部分与旧的参数合并
+    const newParams = { ...queryParams, ...newQueryPart }
+
+    // 更新查询参数
+    setQueryParams(newParams)
+
+    // 使用最新的参数去请求文章列表
+    queryArticleList(newParams)
+  }
 
   //  ! 上拉加载更多
   const handleLoadMore = async () => {
@@ -112,21 +121,18 @@ export default function BlogHomepage() {
 
   // ! 日期组件日期点击事件
   const onDayClick = (publishDateStr: string) => {
-    setHasQueryArticleList(false)
-    setQueryParams(pre => ({ ...pre, publishDateStr }))
+    updateAndRefetch({ publishDateStr, pageNum: 1 })
   }
 
   //  ! 标签点击事件
   const handleTagClick = (articleTagId: number) => {
-    setHasQueryArticleList(false)
     setActiveTagId(articleTagId)
-    setQueryParams(pre => ({ ...pre, articleTagId }))
+    updateAndRefetch({ articleTagId, pageNum: 1 })
   }
 
   // ! 分页按钮被被点击
   const handlePageButtonClick = (pageNum: number) => {
-    setHasQueryArticleList(false)
-    setQueryParams(pre => ({ ...pre, pageNum }))
+    updateAndRefetch({ pageNum })
   }
 
   // ! 跳转文章详情

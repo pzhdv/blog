@@ -35,7 +35,6 @@ type State = {
   hasMore: boolean // 是否还有更多
   scrollTop: number // 滚动高度
 
-  isMobile: boolean //是否是移动端
   isFromDetailPage: boolean // 是否是从详情页面返回
 }
 
@@ -46,9 +45,7 @@ type Actions = {
   queryArticleList: (queryParams: QueryParams) => void // 查询文章列表，根据查询参数获取文章
   loadMore: (queryParams: QueryParams) => void // 加载更多文章，根据查询参数获取更多文章
   setScrollTop: (scrollTop: number) => void // 设置滚动高度
-  setHasQueryArticleList: (hasQueryArticleList: boolean) => void // 设置是否已经查询过文章列表
 
-  setIsMobile: (isMobile: boolean) => void // 设置是否是移动端
   setIsFromDetailPage: (isFromDetailPage: boolean) => void // 设置是否是从详情页面返回
 }
 
@@ -69,21 +66,14 @@ const initialState: State = {
   hasMore: false,
   scrollTop: 0,
 
-  isMobile: false,
   isFromDetailPage: false,
 }
 
 // 创建首页页面数据store 核心逻辑
 const storeCreator: StateCreator<State & Actions> = (set, get) => ({
   ...initialState,
-  setHasQueryArticleList: hasQueryArticleList => {
-    set({ hasQueryArticleList })
-  },
   setScrollTop: scrollTop => {
     set({ scrollTop })
-  },
-  setIsMobile: isMobile => {
-    set({ isMobile })
   },
   setIsFromDetailPage: isFromDetailPage => {
     set({ isFromDetailPage })
@@ -112,6 +102,7 @@ const storeCreator: StateCreator<State & Actions> = (set, get) => ({
   },
   queryRightSiderData: async () => {
     try {
+      console.log('查询右侧侧边栏数据')
       // 并行加载所有数据
       const [authorRes, tagRes, totalRes, categoryRes, dateRes] =
         await Promise.all([
@@ -146,7 +137,6 @@ const storeCreator: StateCreator<State & Actions> = (set, get) => ({
     try {
       const { loading, currentPage: pageNum } = get()
       if (loading) {
-        console.log('正在查询中')
         return
       }
       console.log('上拉加载更多')

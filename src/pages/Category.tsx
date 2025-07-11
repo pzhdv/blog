@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import useDeviceType from '@/hooks/useDeviceType'
@@ -39,9 +39,6 @@ export default function BlogCategoryPage() {
     queryArticleList, // 查询文章列表的方法
     loadMore, // 加载更多文章的方法
 
-    isMobile: isMobileDevice, // 是否是移动端，用于区分移动端和 PC 端的行为
-    setIsMobile, // 设置是否是移动端
-
     isFromDetailPage, // 是否是从详情页面返回，用于处理返回逻辑
     setIsFromDetailPage, // 设置是否是从详情页面返回
 
@@ -58,9 +55,9 @@ export default function BlogCategoryPage() {
     setScrollTop, // 设置滚动高度
 
     hasQueryArticleList, // 是否已经查询过文章列表，用于避免重复查询
-    setHasQueryArticleList, // 设置是否已经查询过分类和文章列表
   } = useCategoryStore()
 
+  const previousIsMobileRef = useRef(isMobile) // 使用 useRef 跟踪上一次的设备状态，避免不必要的重新渲染
   const [queryParams, setQueryParams] = useState<QueryParams>({
     pageSize: isMobile ? Mobile_PageSize : PC_PageSize,
     pageNum: currentPage,
@@ -75,16 +72,29 @@ export default function BlogCategoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasInitSearch, queryParams])
 
-  // 实时响应式 PC-移动
+  // 实时响应式PC-移动 查询文章列表
   useEffect(() => {
-    if (hasQueryArticleList && isMobile !== isMobileDevice) {
-      //触发更新 查询文章列表
-      setHasQueryArticleList(false)
-      setIsMobile(isMobile)
-      setQueryParams(pre => ({ ...pre, pageNum: 1 }))
+    const isFirstLoading = !hasQueryArticleList // 是否是第一次加载
+    const deviceTypeHasChanged =
+      hasQueryArticleList && isMobile !== previousIsMobileRef.current // 设备是否切换
+
+    // 如果两个条件都不满足，则什么都不做
+    if (!isFirstLoading && !deviceTypeHasChanged) {
+      return
     }
+
+    //  更新设备状态
+    previousIsMobileRef.current = isMobile
+
+    // 准备新的查询参数并调用查询函数
+    const newParams = {
+      pageSize: isMobile ? Mobile_PageSize : PC_PageSize,
+      pageNum: 1, // 切换设备时、或第一次查询,重置到第一页
+    }
+    setQueryParams(newParams) // 更新本地 state
+    queryArticleList(newParams) // 调用查询函数查询文章列表
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasQueryArticleList, isMobile, isMobileDevice])
+  }, [hasQueryArticleList, isMobile])
 
   // 处理分类树默认展开折叠 PC - 全部展开  Mobile - 全部折叠
   useEffect(() => {
@@ -135,14 +145,17 @@ export default function BlogCategoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, scrollTop, isFromDetailPage])
 
-  // 查询文章列表
-  useEffect(() => {
-    // 已经查询过就不在查
-    if (!hasQueryArticleList) {
-      queryArticleList(queryParams) // 查询文章列表
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryParams, hasQueryArticleList])
+  // todo 通用的更新查询参数和文章列表请求
+  const updateAndRefetch = (newQueryPart: Partial<QueryParams>) => {
+    // 将新的查询参数部分与旧的参数合并
+    const newParams = { ...queryParams, ...newQueryPart }
+
+    // 更新查询参数
+    setQueryParams(newParams)
+
+    // 使用最新的参数去请求文章列表
+    queryArticleList(newParams)
+  }
 
   // 获取分类的完整路径
   const getCategoryPath = (
@@ -172,8 +185,7 @@ export default function BlogCategoryPage() {
 
   // ! 分页按钮被被点击
   const handlePageButtonClick = (pageNum: number) => {
-    setHasQueryArticleList(false)
-    setQueryParams(pre => ({ ...pre, pageNum }))
+    updateAndRefetch({ pageNum })
   }
 
   // !处理分类点击事件
@@ -188,15 +200,13 @@ export default function BlogCategoryPage() {
     // 3、获取当前分类及子分类的id列表 用于按分类查询文章列表
     const categoryIds = collectCategoryIds(category)
 
-    //  4、查询文章列表 从第一页开始
-    setQueryParams(pre => ({ ...pre, categoryIds, pageNum: 1 }))
-    setHasQueryArticleList(false)
+    //  4、跟新数据并且查询文章列表 从第一页开始
+    updateAndRefetch({ categoryIds, pageNum: 1 })
   }
 
   //  ! 上拉加载更多事件
   const handleLoadMore = async () => {
     if (loading) return
-    console.log('上拉加载更多')
     loadMore(queryParams)
   }
 
