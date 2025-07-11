@@ -1,187 +1,175 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 
 import useDeviceType from '@/hooks/useDeviceType'
 
-import {
-  queryHomePageArticleList,
-  queryBlogAuthor,
-  queryArticleTotal,
-  queryArticleTagList,
-  queryArticleCategoryTotal,
-  queryArticlePublishDateList,
-} from '@/api'
+import type { HomePageQueryArticleListParams as QueryParams } from '@/types'
 
-import type {
-  ArticleTag,
-  Article,
-  BlogAuthor,
-  HomePageQueryArticleListParams as QueryParams,
-} from '@/types'
+import { useHomeStore } from '@/store'
 
 import BlogCalendar from '@/components/BlogCalendar'
 import PcPagination from '@/components/PcPagination'
 import InfiniteScroll from '@/components/InfiniteScroll'
-import Skeleton from '@/components/Skeleton'
+import {
+  HomeArticleListSkeleton,
+  AuthorInfoSkeleton,
+  CalendarSkeleton,
+  TagListSkeleton,
+} from '@/components/Skeleton'
 
-const PC_PageSize = 4 //PC端默认页大小
-const Mobile_PageSize = 4 //移动端默认页大小
+const SITE_NAME = import.meta.env.VITE_SITE_NAME || '技术博客'
+const SITE_URL = import.meta.env.VITE_SITE_URL || ''
+
+const PC_PageSize = 4
+const Mobile_PageSize = 5
 
 export default function BlogHomepage() {
-  const isMobile = useDeviceType()
+  const {
+    hasQueryRightSiderData,
+    blogAuthor,
+    articleTotal,
+    articleCategoryTotal,
+    articlePublishDateList,
+    tagList,
+    queryRightSiderData,
+
+    articleList,
+    totalPage,
+    currentPage,
+    hasMore,
+    loading,
+    queryArticleList,
+    loadMore,
+
+    hasQueryArticleList,
+
+    scrollTop,
+    setScrollTop,
+
+    isFromDetailPage,
+    setIsFromDetailPage,
+  } = useHomeStore()
   const navigate = useNavigate()
-  const [blogAuthor, setBlogAuthor] = useState<BlogAuthor | null>(null) // 作者个人信息
-  const [articleTotal, setArticleTotal] = useState<number>() // 文章总条数
-  const [articleCategoryTotal, setArticleCategoryTotal] = useState<number>() // 文章分类总条数
-  const [articlePublishDateList, setArticlePublishDateList] = useState<
-    { date: Date }[]
-  >([]) // 文章发布时间列表
-  const [tagList, setTagList] = useState<ArticleTag[]>([]) // 标签数据列表
-  const [activeTagId, setActiveTagId] = useState<number>() // 激活的标签Id
-  const [articleList, setArticleList] = useState<Article[]>([]) // 文章列表
-  const [totalPage, setTotalPage] = useState<number>(0) // 总分页数
-  const [currentPage, setCurrentPage] = useState<number>(1) // 当前页码
+  const isMobile = useDeviceType()
+  const previousIsMobileRef = useRef(isMobile)
+  const [activeTagId, setActiveTagId] = useState<number>()
   const [queryParams, setQueryParams] = useState<QueryParams>({
     pageSize: isMobile ? Mobile_PageSize : PC_PageSize,
-    pageNum: 1,
-  }) // 查询参数对象
-  const [loading, setLoading] = useState(false)
-  const [hasMore, setHasMore] = useState(false)
+    pageNum: currentPage,
+  })
 
-  // 查询右边侧边栏数据
   useEffect(() => {
-    // 查询侧边栏数据（仅PC端）
-    const fetchSidebarData = async () => {
-      try {
-        // 查询标签数据列表
-        const tagRes = await queryArticleTagList()
-        setTagList(tagRes.data)
+    const isFirstLoading = !hasQueryArticleList
+    const deviceTypeHasChanged =
+      hasQueryArticleList && isMobile !== previousIsMobileRef.current
 
-        // 查询作者个人信息
-        const authorRes = await queryBlogAuthor()
-        setBlogAuthor(authorRes.data)
+    if (!isFirstLoading && !deviceTypeHasChanged) {
+      return
+    }
 
-        // 查询文章总条数
-        const totalRes = await queryArticleTotal()
-        setArticleTotal(totalRes.data)
+    previousIsMobileRef.current = isMobile
 
-        // 查询文章分类总条数
-        const categoryRes = await queryArticleCategoryTotal()
-        setArticleCategoryTotal(categoryRes.data)
+    const newParams = {
+      pageSize: isMobile ? Mobile_PageSize : PC_PageSize,
+      pageNum: 1,
+    }
+    setQueryParams(newParams)
+    queryArticleList(newParams)
+  }, [hasQueryArticleList, isMobile])
 
-        // 查询文章发布时间列表
-        const dateRes = await queryArticlePublishDateList()
-        const dateList = dateRes?.data?.map(d => ({ date: new Date(d) })) || []
-        setArticlePublishDateList(dateList)
-      } catch (error) {
-        console.error('侧边栏数据请求失败:', error)
+  useEffect(() => {
+    if (isMobile) return
+    if (!hasQueryRightSiderData) queryRightSiderData()
+  }, [isMobile, hasQueryRightSiderData])
+
+  useEffect(() => {
+    if (isMobile) {
+      if (isFromDetailPage) {
+        window.scrollTo(0, scrollTop)
+      } else {
+        window.scrollTo(0, 0)
       }
     }
-    if (isMobile) return // 移动端不需要查询
-    fetchSidebarData()
-  }, [isMobile])
 
-  // 查询文章列表
-  useEffect(() => {
-    // 查询文章列表
-    const getArticleList = async () => {
-      try {
-        console.log('查询文章列表')
-        setLoading(true)
-        const res = await queryHomePageArticleList(queryParams)
-        // 更新总页数和当前页
-        setTotalPage(res.data.pages)
-        setCurrentPage(res.data.current)
-        //移动端 数据处理
-        if (isMobile) {
-          //刷新或初始化查询
-          if (queryParams.pageNum === 1) {
-            setArticleList(res.data.records)
-          } else {
-            // 追加新数据
-            setArticleList(pre => [...pre, ...res.data.records])
-          }
-          // 判断是否还有更多数据
-          setHasMore(res.data.current < res.data.pages)
-        } else {
-          // PC端
-          setArticleList(res.data.records)
-        }
-      } catch (error) {
-        console.error('queryHomePageArticleList:', error)
-      } finally {
-        setLoading(false)
-      }
+    return () => {
+      setIsFromDetailPage(false)
     }
-    getArticleList()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queryParams])
+  }, [isMobile, scrollTop, isFromDetailPage])
 
-  // ! 日期组件日期点击事件
-  const onDayClick = (publishDateStr: string) => {
-    setQueryParams(pre => ({ ...pre, publishDateStr }))
+  const updateAndRefetch = (newQueryPart: Partial<QueryParams>) => {
+    const newParams = { ...queryParams, ...newQueryPart }
+    setQueryParams(newParams)
+    queryArticleList(newParams)
   }
 
-  //  ! 标签点击事件
+  const handleLoadMore = async () => {
+    if (loading) return
+    loadMore(queryParams)
+  }
+
+  const onDayClick = (publishDateStr: string) => {
+    updateAndRefetch({ publishDateStr, pageNum: 1 })
+  }
+
   const handleTagClick = (articleTagId: number) => {
     setActiveTagId(articleTagId)
-    setQueryParams(pre => ({ ...pre, articleTagId }))
+    updateAndRefetch({ articleTagId, pageNum: 1 })
   }
 
-  // ! 跳转文章详情
+  const handlePageButtonClick = (pageNum: number) => {
+    updateAndRefetch({ pageNum })
+  }
+
   const toDetailPage = (articleId: number) => {
+    setScrollTop(window.scrollY)
     navigate(`/detail/${articleId}`, { state: { from: 'home' } })
   }
 
-  // ! 分页按钮被被点击
-  const handlePageButtonClick = (pageNum: number) => {
-    setQueryParams(pre => ({ ...pre, pageNum }))
-  }
-
-  //  ! 上拉加载更多
-  const handleLoadMore = async () => {
-    if (loading) return
-    console.log('上拉加载更多')
-    setLoading(true)
-    setTimeout(() => {
-      if (!loading && hasMore) {
-        setQueryParams(prev => ({
-          ...prev,
-          pageNum: prev.pageNum + 1,
-        }))
-      }
-    }, 300)
-  }
-
-  // 渲染空组件
   const renderEmpty = () => {
-    if (loading) {
-      return <Skeleton />
-    }
     return (
+      !loading &&
       articleList.length === 0 && (
         <div className="p-8 text-center text-gray-500 dark:text-gray-400">
           <svg
+            className="w-20 h-20 mb-4 mx-auto"
+            viewBox="0 0 1524 1024"
+            version="1.1"
             xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            className="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-4"
+            p-id="6720"
           >
             <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
+              d="M0 845.395349a762.046512 178.604651 0 1 0 1524.093023 0 762.046512 178.604651 0 1 0-1524.093023 0Z"
+              fill="#eee"
+              p-id="6721"
+            ></path>
+            <path
+              d="M214.325581 414.362791L470.325581 11.906977h559.627907L1309.767442 409.36186"
+              fill="#FFFFFF"
+              p-id="6722"
+            ></path>
+            <path
+              d="M224.327442 420.792558l-20.003721-12.859535L463.895814 0h572.249302l283.386047 402.455814-19.527442 13.812093L1023.76186 23.813953H476.755349L224.327442 420.792558z"
+              fill="#DDDDDD"
+              p-id="6723"
+            ></path>
+            <path
+              d="M1252.613953 881.116279H271.47907A57.391628 57.391628 0 0 1 214.325581 823.962791V414.362791c16.431628-33.815814 26.195349-45.246512 57.629768-45.246512h270.288372c25.242791 0 22.385116 20.956279 22.385116 20.956279s1.905116 71.44186 2.381396 86.92093 19.527442 12.859535 19.527441 12.859535l382.690233 1.428837s20.956279 4.048372 21.194419-12.859534 4.286512-88.349767 4.286511-88.349768a25.242791 25.242791 0 0 1 25.71907-20.956279h229.566512c31.434419 0 59.534884 23.813953 59.534883 45.246512v409.6A57.391628 57.391628 0 0 1 1252.613953 881.116279z"
+              fill="#FAFAFA"
+              p-id="6724"
+            ></path>
+            <path
+              d="M1252.613953 893.023256H271.47907a69.060465 69.060465 0 0 1-69.060465-69.060465V409.123721C221.231628 372.450233 234.567442 357.209302 271.955349 357.209302h270.288372a34.292093 34.292093 0 0 1 27.147907 10.716279 31.434419 31.434419 0 0 1 7.144186 23.813954s1.905116 68.822326 2.381395 84.777674c0 1.666977 4.048372 1.905116 5.47721 1.428838l385.071628 1.190697a18.574884 18.574884 0 0 0 9.287441 0c0-17.622326 3.810233-86.682791 4.048372-89.778604A36.911628 36.911628 0 0 1 1020.427907 357.209302h229.328372c36.673488 0 71.44186 27.862326 71.441861 57.153489v409.6a69.060465 69.060465 0 0 1-68.584187 69.060465z m-1026.381395-476.27907v407.218605a45.246512 45.246512 0 0 0 45.246512 45.246511h981.134883a45.246512 45.246512 0 0 0 45.246512-45.246511V414.362791c0-13.097674-21.432558-33.339535-47.627907-33.339535h-229.804651a12.859535 12.859535 0 0 0-14.288372 10.716279s-4.048372 70.251163-4.048372 86.444651a23.813953 23.813953 0 0 1-8.573023 19.051163 34.530233 34.530233 0 0 1-26.671628 5.477209l-381.023256-1.190698a29.767442 29.767442 0 0 1-23.813954-5.477209 23.813953 23.813953 0 0 1-8.811162-18.813023c0-16.431628-2.381395-86.92093-2.381396-86.92093a9.763721 9.763721 0 0 0-1.428837-6.667907 13.097674 13.097674 0 0 0-9.287442-2.381396H271.955349c-23.575814-0.23814-30.72 5.23907-45.722791 35.95907z"
+              fill="#DDDDDD"
+              p-id="6725"
+            ></path>
           </svg>
-          <p className="text-lg font-medium">暂无文章，稍后再来看看吧！</p>
+          <p className="text-lg font-medium">暂无文章可供显示，请稍后再来！</p>
         </div>
       )
     )
   }
 
-  // 渲染文章列表
   const renderArticleList = () => {
     return (
       <div className="grid md:grid-cols-2 gap-6">
@@ -191,14 +179,12 @@ export default function BlogHomepage() {
             key={article.articleId}
             className="rounded-lg overflow-hidden transition-all duration-300 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 shadow-md hover:shadow-xl"
           >
-            {/* 封面图片 */}
             <img
               src={article.image}
               alt={article.title}
               className="w-full h-48 object-cover rounded-t-lg"
+              loading="lazy"
             />
-
-            {/* 文章内容 */}
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-white">
                 {article.title}
@@ -207,10 +193,7 @@ export default function BlogHomepage() {
                 {article.excerpt}
               </p>
               <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                <span>
-                  {article.createTime?.split(' ')[0]}{' '}
-                  {/* "2025-05-06 01:42:09" */}
-                </span>
+                <span>{article.createTime?.split(' ')[0]}</span>
                 <button className="ml-auto text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
                   阅读全文 →
                 </button>
@@ -222,13 +205,11 @@ export default function BlogHomepage() {
     )
   }
 
-  // 渲染作者信息模块
   const renderAuthorInfo = () => {
     return (
       <div
         className={`p-6 rounded-lg shadow-sm bg-white text-gray-800  dark:bg-gray-800 dark:text-gray-100`}
       >
-        {/* 作者头部信息 */}
         <div className="flex items-start mb-6">
           <img
             src={blogAuthor?.avatar}
@@ -244,13 +225,9 @@ export default function BlogHomepage() {
             </p>
           </div>
         </div>
-
-        {/* 作者介绍 */}
         <p className="mb-6 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
           {blogAuthor?.selfIntroduction}
         </p>
-
-        {/* 数据统计 */}
         <div className="grid grid-cols-3 gap-4 text-center">
           <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -260,7 +237,6 @@ export default function BlogHomepage() {
               <span className="mr-1">📝</span>文章
             </div>
           </div>
-
           <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
               {tagList.length}
@@ -269,7 +245,6 @@ export default function BlogHomepage() {
               <span className="mr-1">🏷️</span>标签
             </div>
           </div>
-
           <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
             <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
               {articleCategoryTotal}
@@ -283,7 +258,6 @@ export default function BlogHomepage() {
     )
   }
 
-  // 渲染tag列表
   const renderTagList = () => {
     return (
       <div className="p-6 rounded-lg shadow-sm bg-white dark:bg-gray-800">
@@ -298,7 +272,7 @@ export default function BlogHomepage() {
               className={`px-3 py-1 rounded-full text-sm transition-colors
                       ${
                         activeTagId === tag.articleTagId
-                          ? 'bg-purple-100 text-purple-600 hover:bg-purple-200 dark:bg-purple-800 dark:text-purple-200 dark:hover:bg-purple-900'
+                          ? 'bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-800 dark:text-blue-200 dark:hover:bg-blue-900'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                       }
                     `}
@@ -310,42 +284,82 @@ export default function BlogHomepage() {
       </div>
     )
   }
-  return (
-    <div className="grid md:grid-cols-3 gap-8">
-      {/* 文章列表 - col-span-2:占父盒子大小2份布局 */}
-      <div className="md:col-span-2 ">
-        {/* 空列表显示 */}
-        {renderEmpty()}
-        {/* 文章列表 */}
-        {renderArticleList()}
-        {/* 分页 移动端下拉加载更多 pc端显示分页按钮*/}
-        {isMobile ? (
-          articleList.length > 0 && (
-            <InfiniteScroll
-              loadMore={handleLoadMore}
-              hasMore={hasMore}
-              loading={loading}
-              threshold={50}
-            />
-          )
-        ) : (
-          <PcPagination
-            totalPage={totalPage}
-            currentPage={currentPage}
-            onClick={handlePageButtonClick}
-          />
-        )}
-      </div>
 
-      {/* 侧边栏  col-span-2:占父盒子大小1份布局*/}
-      <aside className="space-y-8 hidden md:block ">
-        {/* 作者简介*/}
-        {renderAuthorInfo()}
-        {/* 日历组件 */}
-        <BlogCalendar posts={articlePublishDateList} onDayClick={onDayClick} />
-        {/* 标签列表 */}
-        {renderTagList()}
-      </aside>
-    </div>
+  const renderHelmet = () => (
+    <Helmet>
+      <title>{`首页 - ${SITE_NAME}`}</title>
+      <meta
+        name="description"
+        content={`${SITE_NAME} - 分享前端技术、Web开发、性能优化等优质技术文章`}
+      />
+      <meta
+        name="keywords"
+        content="技术博客, 前端开发, React, TypeScript, Web开发"
+      />
+      <link rel="canonical" href={SITE_URL} />
+      <meta property="og:title" content={`首页 - ${SITE_NAME}`} />
+      <meta
+        property="og:description"
+        content={`${SITE_NAME} - 分享前端技术、Web开发、性能优化等优质技术文章`}
+      />
+      <meta property="og:url" content={SITE_URL} />
+      <meta property="og:type" content="website" />
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:title" content={`首页 - ${SITE_NAME}`} />
+    </Helmet>
+  )
+  return (
+    <>
+      {renderHelmet()}
+
+      <div className={`grid md:grid-cols-3 gap-8  min-h-[90vh] md:min-h-0`}>
+        {/* 文章列表区域 */}
+        <div className="md:col-span-2">
+          {/* 文章骨架屏 */}
+          {loading && articleList.length === 0 && <HomeArticleListSkeleton />}
+          {/* 空列表显示 */}
+          {renderEmpty()}
+          {/* 文章列表 */}
+          {renderArticleList()}
+          {isMobile ? (
+            articleList.length > 0 && (
+              <InfiniteScroll
+                loadMore={handleLoadMore}
+                hasMore={hasMore}
+                loading={loading}
+                threshold={50}
+              />
+            )
+          ) : (
+            <PcPagination
+              totalPage={totalPage}
+              currentPage={currentPage}
+              onClick={handlePageButtonClick}
+            />
+          )}
+        </div>
+
+        {/* 侧边栏 */}
+        <aside className="space-y-8 hidden md:block">
+          {/* 作者信息骨架屏 */}
+          {!hasQueryRightSiderData && <AuthorInfoSkeleton />}
+          {/* 作者信息 */}
+          {hasQueryRightSiderData && renderAuthorInfo()}
+          {/* 日历骨架屏 */}
+          {!hasQueryRightSiderData && <CalendarSkeleton />}
+          {/* 日历组件 */}
+          {hasQueryRightSiderData && (
+            <BlogCalendar
+              posts={articlePublishDateList}
+              onDayClick={onDayClick}
+            />
+          )}
+          {/* 标签骨架屏 */}
+          {!hasQueryRightSiderData && <TagListSkeleton />}
+          {/* 标签列表 */}
+          {hasQueryRightSiderData && renderTagList()}
+        </aside>
+      </div>
+    </>
   )
 }
