@@ -17,7 +17,7 @@ import PcPagination from '@/components/PcPagination'
 import InfiniteScroll from '@/components/InfiniteScroll'
 
 const ROOT_CATEGORY_ID = 1 // 树根节点id为1 查询分类列表不需要查出树根
-const PC_PageSize = 2 //PC端默认页大小
+const PC_PageSize = 3 //PC端默认页大小
 const Mobile_PageSize = 4 //移动端默认页大小
 
 export default function BlogCategoryPage() {

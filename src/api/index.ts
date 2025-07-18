@@ -26,7 +26,7 @@ export const queryCategoryListWithArticleCount = (parentId?: number) =>
     { parentId: parentId },
   )
 export const queryArticleCategoryTotal = () =>
-  request.get<number>('/article/total')
+  request.get<number>('/articleCategory/total')
 
 // 文章部分
 /**
