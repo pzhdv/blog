@@ -30,7 +30,7 @@ const PcPagination: FC<IProps> = ({ totalPage, currentPage, onClick }) => {
 
         {/* 前省略号（当当前页离第一页较远时显示） */}
         {currentPage > 3 && (
-          <span className="w-10 h-10 flex items-center justify-center">
+          <span className="w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-300">
             ...
           </span>
         )}
@@ -68,7 +68,7 @@ const PcPagination: FC<IProps> = ({ totalPage, currentPage, onClick }) => {
 
         {/* 后省略号（当当前页离最后一页较远时显示） */}
         {currentPage < totalPage - 2 && (
-          <span className="w-10 h-10 flex items-center justify-center">
+          <span className="w-10 h-10 flex items-center justify-center text-gray-600 dark:text-gray-300">
             ...
           </span>
         )}

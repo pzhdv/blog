@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// npm i react-markdown  rehype-raw  remark-gfm rehype-external-links react-syntax-highlighter
+// npm i react-markdown  rehype-sanitize remark-gfm rehype-external-links react-syntax-highlighter
 // npm i -D @types/react-syntax-highlighter
 import React, { useState } from 'react'
 // ReactMarkdown 负责将 Markdown 字符串转换为 React 元素 (最终渲染为 HTML)。
@@ -136,8 +136,6 @@ const CodeBlock: React.FC<CodeBlockProps> = ({ language, codeString }) => {
 }
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
-  const { theme } = useAppStateContext()
-  const isDarkMode = theme === 'dark'
   return (
     <ReactMarkdown
       remarkPlugins={[
@@ -149,34 +147,37 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         // 标题
         h1: ({ node, ...props }) => (
           <h1
-            className="text-3xl md:text-4xl font-bold mb-6 mt-12 border-b pb-2 border-gray-200 dark:border-gray-700"
+            className="text-xl sm:text-2xl md:text-3xl font-bold mb-5 mt-6 first:mt-0 pb-2 text-gray-900 dark:text-gray-100 break-words"
             {...props}
           />
         ),
         h2: ({ node, ...props }) => (
           <h2
-            className="text-2xl md:text-3xl font-semibold mb-5 mt-10 border-b pb-2 border-gray-200 dark:border-gray-700"
+            className="text-lg sm:text-xl md:text-2xl font-semibold mb-4 mt-6 first:mt-0 pb-2 border-b border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 break-words"
             {...props}
           />
         ),
         h3: ({ node, ...props }) => (
           <h3
-            className="text-xl md:text-2xl font-medium mb-4 mt-8"
+            className="text-base sm:text-lg md:text-xl font-semibold mb-3 mt-5 first:mt-0 text-gray-800 dark:text-gray-200 break-words"
             {...props}
           />
         ),
         h4: ({ node, ...props }) => (
-          <h4 className="text-lg md:text-xl font-medium mb-3 mt-6" {...props} />
+          <h4
+            className="text-sm sm:text-base md:text-lg font-medium mb-3 mt-4 first:mt-0 text-gray-700 dark:text-gray-300 break-words"
+            {...props}
+          />
         ),
         h5: ({ node, ...props }) => (
           <h5
-            className="text-base md:text-lg font-medium mb-2 mt-4"
+            className="text-sm sm:text-base font-medium mb-2 mt-4 first:mt-0 text-gray-700 dark:text-gray-300 break-words"
             {...props}
           />
         ),
         h6: ({ node, ...props }) => (
           <h6
-            className="text-sm md:text-base font-medium mb-2 mt-4"
+            className="text-xs sm:text-sm font-medium mb-2 mt-3 first:mt-0 text-gray-600 dark:text-gray-400 break-words"
             {...props}
           />
         ),
@@ -184,7 +185,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         // 段落
         p: ({ node, ...props }) => (
           <p
-            className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed"
+            className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed text-sm sm:text-base break-words"
             {...props}
           />
         ),
@@ -192,19 +193,19 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         // 列表
         ul: ({ node, depth, ...props }: any) => (
           <ul
-            className={`list-disc pl-6 mb-4 space-y-1 ${depth > 0 ? 'ml-4' : ''}`}
+            className={`list-disc pl-4 sm:pl-6 mb-4 space-y-1 sm:space-y-2 text-gray-700 dark:text-gray-300 break-words ${depth > 0 ? 'ml-2 sm:ml-4' : ''}`}
             {...props}
           />
         ),
         ol: ({ node, depth, ...props }: any) => (
           <ol
-            className={`list-decimal pl-6 mb-4 space-y-1 ${depth > 0 ? 'ml-4' : ''}`}
+            className={`list-decimal pl-4 sm:pl-6 mb-4 space-y-1 sm:space-y-2 text-gray-700 dark:text-gray-300 break-words ${depth > 0 ? 'ml-2 sm:ml-4' : ''}`}
             {...props}
           />
         ),
         li: ({ node, ...props }) => (
           <li
-            className="pl-1 marker:text-gray-400 dark:marker:text-gray-600"
+            className="pl-1 sm:pl-2 text-sm sm:text-base leading-relaxed break-words"
             {...props}
           />
         ),
@@ -229,7 +230,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
           } else {
             // 明确处理行内代码
             return (
-              <code {...props} className="p-1   text-orange-500 ">
+              <code {...props} className="p-1 text-orange-500 ">
                 {children}
               </code>
             )
@@ -238,7 +239,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         // 分隔线
         hr: ({ node, ...props }) => (
           <hr
-            className="my-5 border-t border-gray-200 dark:border-gray-700"
+            className="my-8 border-0 h-px bg-gradient-to-r from-transparent via-gray-300 to-transparent dark:via-gray-600"
             {...props}
           />
         ),
@@ -249,31 +250,22 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         // 引用
         blockquote: ({ node, ...props }) => (
           <blockquote
-            className={`border-l-4 pl-4 my-4 italic ${
-              isDarkMode
-                ? 'border-gray-600 text-gray-400'
-                : 'border-gray-300 text-gray-600'
-            }`}
+            className="border-l-4 border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/20 pl-4 sm:pl-6 pr-3 sm:pr-4 py-3 sm:py-4 my-4 sm:my-6 rounded-r-lg italic text-gray-700 dark:text-gray-300 shadow-sm break-words"
             {...props}
           />
         ),
 
         // 图片优化
         img: ({ node, ...props }) => (
-          <img
-            className="rounded-m my-3 shadow-lg max-w-full h-auto dark:brightness-95"
-            {...props}
-          />
+          <div className="my-6 text-center">
+            <img className="max-w-full h-auto mx-auto" {...props} />
+          </div>
         ),
 
         // 链接
         a: ({ node, ...props }) => (
           <a
-            className={`hover:underline ${
-              isDarkMode
-                ? 'text-blue-400 hover:text-blue-300'
-                : 'text-blue-600 hover:text-blue-800'
-            }`}
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline decoration-blue-500/30 hover:decoration-blue-500 underline-offset-2 transition-colors duration-200 font-medium break-all"
             target="_blank"
             rel="noopener noreferrer"
             {...props}
@@ -289,7 +281,9 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
             />
           </div>
         ),
-        // thead: ({ node, ...props }) => <thead className="bg-gray-100 dark:bg-gray-700" {...props} />,
+        thead: ({ node, ...props }) => (
+          <thead className="bg-gray-100 dark:bg-gray-700" {...props} />
+        ),
         tbody: ({ children, ...props }: any) => (
           <tbody
             {...props}

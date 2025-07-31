@@ -172,9 +172,9 @@ const BlogDetail = () => {
         </div>
 
         {/* 描述 */}
-        <div className="text-gray-700 dark:text-gray-300 mb-0">
+        {/* <div className="text-gray-700 dark:text-gray-300 mb-0">
           {article?.excerpt}
-        </div>
+        </div> */}
 
         {/* 正文内容 */}
         <div className="prose prose-lg dark:prose-invert overflow-x-hidden">
