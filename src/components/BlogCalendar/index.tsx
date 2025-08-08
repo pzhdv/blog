@@ -6,6 +6,9 @@ import {
   eachDayOfInterval,
   isSameMonth,
   isSameDay,
+  addDays,
+  subDays,
+  getDay,
 } from 'date-fns'
 
 import { useAppStateContext } from '@/context/AppStateContext'
@@ -32,14 +35,37 @@ const BlogCalendar = ({ posts, onDayClick }: CalendarProps) => {
   // 生成当月日期数据
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(currentDate)
-  const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd })
+
+  // 获取月初第一天是星期几 (0是星期日，6是星期六)
+  const firstDayOfWeek = getDay(monthStart)
+
+  // 获取月末最后一天是星期几
+  const lastDayOfWeek = getDay(monthEnd)
+
+  // 计算需要显示的上个月的天数
+  const daysFromPrevMonth = firstDayOfWeek
+
+  // 计算需要显示的下个月的天数
+  const daysFromNextMonth = 6 - lastDayOfWeek
+
+  // 计算日历显示的起始日期（上个月的日期）
+  const calendarStart = subDays(monthStart, daysFromPrevMonth)
+
+  // 计算日历显示的结束日期（下个月的日期）
+  const calendarEnd = addDays(monthEnd, daysFromNextMonth)
+
+  // 生成完整的日历日期（包含上月、本月和下月的部分日期）
+  const calendarDays = eachDayOfInterval({
+    start: calendarStart,
+    end: calendarEnd,
+  })
 
   // 获取文章数量
   const getPostCount = (date: Date) => {
     return posts.filter(post => isSameDay(post.date, date)).length
   }
 
-  // 修改后的月份切换处理函数
+  // 月份切换处理函数
   const handleMonthChange = (direction: 'prev' | 'next') => {
     setCurrentDate(prevDate => {
       // 创建新的日期实例避免引用问题
@@ -60,14 +86,6 @@ const BlogCalendar = ({ posts, onDayClick }: CalendarProps) => {
   const handleDateClick = (date: Date) => {
     // 保存当前点击日期
     setSelectedDate(date)
-    // // 获取当前日期下的文章总数
-    // const articleTotal = getPostCount(date)
-    // if (articleTotal > 0) {
-    //   // 触发事件
-    //   onDayClick && onDayClick(format(date, 'yyyy-MM-dd'))
-    // } else {
-    //   onDayClick && onDayClick(undefined)
-    // }
     onDayClick && onDayClick(format(date, 'yyyy-MM-dd'))
   }
 
@@ -89,7 +107,7 @@ const BlogCalendar = ({ posts, onDayClick }: CalendarProps) => {
           relative
         `}
       >
-        <div className="text-gray-700 dark:text-gray-300">
+        <div className={`${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
           {format(date, 'd')}
         </div>
 
@@ -227,9 +245,9 @@ const BlogCalendar = ({ posts, onDayClick }: CalendarProps) => {
         ))}
       </div>
 
-      {/* 日期网格 */}
+      {/* 日期网格 - 使用完整的日历日期数组 */}
       <div className="grid grid-cols-7 gap-1">
-        {daysInMonth.map((date, index) => (
+        {calendarDays.map((date, index) => (
           <DayTile key={index} date={date} />
         ))}
       </div>
