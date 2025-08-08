@@ -6,6 +6,41 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "267215",
+      "name": "移动端",
+      "font_class": "yidongduan",
+      "unicode": "e63f",
+      "unicode_decimal": 58943
+    },
+    {
+      "icon_id": "11058856",
+      "name": "小程序",
+      "font_class": "xiaochengxu1",
+      "unicode": "e63e",
+      "unicode_decimal": 58942
+    },
+    {
+      "icon_id": "24814766",
+      "name": "react_native",
+      "font_class": "xingzhuangjiehe",
+      "unicode": "e610",
+      "unicode_decimal": 58896
+    },
+    {
+      "icon_id": "35563101",
+      "name": "vite",
+      "font_class": "vite",
+      "unicode": "e66b",
+      "unicode_decimal": 58987
+    },
+    {
+      "icon_id": "35625983",
+      "name": "nextjs",
+      "font_class": "nextjs",
+      "unicode": "e632",
+      "unicode_decimal": 58930
+    },
+    {
       "icon_id": "929535",
       "name": "linux",
       "font_class": "linux",
