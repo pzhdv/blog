@@ -80,6 +80,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
       ),
     },
     build: {
+      outDir: 'blog_dist', // 确保与Nginx配置一致
       // 生产环境启用代码压缩，开发环境不压缩
       minify: isProduction ? ('terser' as const) : false,
 

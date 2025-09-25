@@ -135,7 +135,7 @@ const BlogDetail = () => {
       <article className="space-y-8 ">
         {/* 标题区 */}
         <div className="space-y-6">
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight leading-tight">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight leading-tight break-words">
             {article?.title}
           </h1>
 
