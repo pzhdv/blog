@@ -107,9 +107,12 @@ export default function Header() {
             {/* 移动端菜单按钮 */}
             <div className="md:hidden flex items-center space-x-4 relative top-0 r-0 z-50">
               <ThemeToggle />
+              {/* 移动端菜单按钮 - 汉堡图标 */}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+                aria-label={isMenuOpen ? '关闭菜单' : '打开菜单'} // 动态切换标签（根据菜单状态）
+                aria-expanded={isMenuOpen} // 额外增强：告诉屏幕阅读器菜单当前展开/折叠状态
               >
                 <svg
                   className="h-6 w-6 text-gray-600 dark:text-white"
@@ -117,6 +120,7 @@ export default function Header() {
                   version="1.1"
                   xmlns="http://www.w3.org/2000/svg"
                   p-id="1976"
+                  aria-hidden="true" // 告诉屏幕阅读器忽略SVG（避免重复读取）
                 >
                   <path
                     d="M954.88 237.056H69.12a43.52 43.52 0 1 1 0-87.04h885.248c24.064 0 43.52 19.456 43.52 43.52s-18.944 43.52-43.008 43.52zM954.88 555.52H69.12a43.52 43.52 0 1 1 0-87.04h885.248c24.064 0 43.52 19.456 43.52 43.52s-18.944 43.52-43.008 43.52zM954.88 874.496H69.12a43.52 43.52 0 1 1 0-87.04h885.248c24.064 0 43.52 19.456 43.52 43.52 0.512 24.064-18.944 43.52-43.008 43.52z"
@@ -142,15 +146,19 @@ export default function Header() {
               >
                 {/* 关闭按钮 */}
                 <div className="flex justify-end mt-4 mr-4">
+                  {/* 关闭按钮 - 叉号图标 */}
                   <button
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
                     className="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700"
+                    aria-label="关闭菜单" // 固定描述（仅用于关闭菜单）
+                    aria-expanded="false" // 增强：告知菜单即将折叠
                   >
                     <svg
                       className="h-6 w-6 text-gray-600 dark:text-white"
                       viewBox="0 0 1024 1024"
                       version="1.1"
                       xmlns="http://www.w3.org/2000/svg"
+                      aria-hidden="true" // 忽略SVG，避免干扰
                     >
                       <path
                         fill="currentColor"
