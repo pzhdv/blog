@@ -10,138 +10,118 @@ import { useHomeStore } from '@/store'
 import BlogCalendar from '@/components/BlogCalendar'
 import PcPagination from '@/components/PcPagination'
 import InfiniteScroll from '@/components/InfiniteScroll'
+import {
+  HomeArticleListSkeleton,
+  AuthorInfoSkeleton,
+  CalendarSkeleton,
+  TagListSkeleton,
+} from '@/components/Skeleton'
 
-const PC_PageSize = 4 //PC端默认页大小
-const Mobile_PageSize = 5 //移动端默认页大小
+const PC_PageSize = 4
+const Mobile_PageSize = 5
 
 export default function BlogHomepage() {
   const {
-    hasQueryRightSiderData, // 是否已经查询过了右侧数据，用于避免重复查询
-    blogAuthor, // 作者个人信息，包含作者的基本信息
-    articleTotal, // 文章总条数，用于显示文章总数
-    articleCategoryTotal, // 文章分类总条数，用于显示分类总数
-    articlePublishDateList, // 文章发布时间列表，用于显示文章的发布时间
-    tagList, // 标签数据列表，用于显示文章标签
-    queryRightSiderData, // 查询右侧侧边栏数据的方法
+    hasQueryRightSiderData,
+    blogAuthor,
+    articleTotal,
+    articleCategoryTotal,
+    articlePublishDateList,
+    tagList,
+    queryRightSiderData,
 
-    articleList, // 文章列表，存储当前分类下的文章
-    totalPage, // 总分页数，表示文章列表的总页数
-    currentPage, // 当前页码，用于分页显示文章
-    hasMore, // 是否还有更多文章，用于支持“加载更多”功能
-    loading, // 加载状态，表示是否正在加载数据
-    queryArticleList, // 查询文章列表的方法
-    loadMore, // 加载更多文章的方法
+    articleList,
+    totalPage,
+    currentPage,
+    hasMore,
+    loading,
+    queryArticleList,
+    loadMore,
 
-    hasQueryArticleList, // 是否已经查询过了文章列表数据，防止文章详情返回再次查询
+    hasQueryArticleList,
 
-    scrollTop, // 滚动高度，用于记录用户滚动的位置
-    setScrollTop, // 设置滚动高度的方法
+    scrollTop,
+    setScrollTop,
 
-    isFromDetailPage, // 是否是从详情页面返回，用于处理返回逻辑
-    setIsFromDetailPage, // 设置是否是从详情页面返回的方法
+    isFromDetailPage,
+    setIsFromDetailPage,
   } = useHomeStore()
   const navigate = useNavigate()
   const isMobile = useDeviceType()
-  const previousIsMobileRef = useRef(isMobile) // 使用 useRef 跟踪上一次的设备状态，避免不必要的重新渲染
-  const [activeTagId, setActiveTagId] = useState<number>() // 激活的标签Id
+  const previousIsMobileRef = useRef(isMobile)
+  const [activeTagId, setActiveTagId] = useState<number>()
   const [queryParams, setQueryParams] = useState<QueryParams>({
     pageSize: isMobile ? Mobile_PageSize : PC_PageSize,
     pageNum: currentPage,
   })
 
-  // 实时响应式PC-移动 查询文章列表
   useEffect(() => {
-    const isFirstLoading = !hasQueryArticleList // 是否是第一次加载
+    const isFirstLoading = !hasQueryArticleList
     const deviceTypeHasChanged =
-      hasQueryArticleList && isMobile !== previousIsMobileRef.current // 设备是否切换
+      hasQueryArticleList && isMobile !== previousIsMobileRef.current
 
-    // 如果两个条件都不满足，则什么都不做
     if (!isFirstLoading && !deviceTypeHasChanged) {
       return
     }
 
-    //  更新设备状态
     previousIsMobileRef.current = isMobile
 
-    // 准备新的查询参数并调用查询函数
     const newParams = {
       pageSize: isMobile ? Mobile_PageSize : PC_PageSize,
-      pageNum: 1, // 切换设备时、或第一次查询,重置到第一页
+      pageNum: 1,
     }
-    setQueryParams(newParams) // 更新本地 state
-    queryArticleList(newParams) // 调用查询函数查询文章列表
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setQueryParams(newParams)
+    queryArticleList(newParams)
   }, [hasQueryArticleList, isMobile])
 
-  // 查询右边侧边栏数据
   useEffect(() => {
-    // 查询侧边栏数据（仅PC端）
     if (isMobile) return
     if (!hasQueryRightSiderData) queryRightSiderData()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, hasQueryRightSiderData])
 
-  // 处理位置
   useEffect(() => {
-    // 如果是移动端
     if (isMobile) {
-      // 如果是从详情页面返回的，则滚动到离开页面之前的位置
       if (isFromDetailPage) {
         window.scrollTo(0, scrollTop)
       } else {
-        // 否则，滚动到顶部
         window.scrollTo(0, 0)
       }
     }
 
-    // 在组件卸载时，重置 isFromDetailPage 状态
     return () => {
       setIsFromDetailPage(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, scrollTop, isFromDetailPage])
 
-  // todo 通用的更新查询参数和文章列表请求
   const updateAndRefetch = (newQueryPart: Partial<QueryParams>) => {
-    // 将新的查询参数部分与旧的参数合并
     const newParams = { ...queryParams, ...newQueryPart }
-
-    // 更新查询参数
     setQueryParams(newParams)
-
-    // 使用最新的参数去请求文章列表
     queryArticleList(newParams)
   }
 
-  //  ! 上拉加载更多
   const handleLoadMore = async () => {
     if (loading) return
     loadMore(queryParams)
   }
 
-  // ! 日期组件日期点击事件
   const onDayClick = (publishDateStr: string) => {
     updateAndRefetch({ publishDateStr, pageNum: 1 })
   }
 
-  //  ! 标签点击事件
   const handleTagClick = (articleTagId: number) => {
     setActiveTagId(articleTagId)
     updateAndRefetch({ articleTagId, pageNum: 1 })
   }
 
-  // ! 分页按钮被被点击
   const handlePageButtonClick = (pageNum: number) => {
     updateAndRefetch({ pageNum })
   }
 
-  // ! 跳转文章详情
   const toDetailPage = (articleId: number) => {
-    setScrollTop(window.scrollY) // 保存离开之前滚动位置
+    setScrollTop(window.scrollY)
     navigate(`/detail/${articleId}`, { state: { from: 'home' } })
   }
 
-  // 渲染空组件
   const renderEmpty = () => {
     return (
       !loading &&
@@ -186,7 +166,6 @@ export default function BlogHomepage() {
     )
   }
 
-  // 渲染文章列表
   const renderArticleList = () => {
     return (
       <div className="grid md:grid-cols-2 gap-6">
@@ -196,15 +175,12 @@ export default function BlogHomepage() {
             key={article.articleId}
             className="rounded-lg overflow-hidden transition-all duration-300 bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700 shadow-md hover:shadow-xl"
           >
-            {/* 封面图片 */}
             <img
               src={article.image}
               alt={article.title}
               className="w-full h-48 object-cover rounded-t-lg"
               loading="lazy"
             />
-
-            {/* 文章内容 */}
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-2 text-gray-800 dark:text-white">
                 {article.title}
@@ -213,10 +189,7 @@ export default function BlogHomepage() {
                 {article.excerpt}
               </p>
               <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                <span>
-                  {article.createTime?.split(' ')[0]}{' '}
-                  {/* "2025-05-06 01:42:09" */}
-                </span>
+                <span>{article.createTime?.split(' ')[0]}</span>
                 <button className="ml-auto text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
                   阅读全文 →
                 </button>
@@ -228,13 +201,11 @@ export default function BlogHomepage() {
     )
   }
 
-  // 渲染作者信息模块
   const renderAuthorInfo = () => {
     return (
       <div
         className={`p-6 rounded-lg shadow-sm bg-white text-gray-800  dark:bg-gray-800 dark:text-gray-100`}
       >
-        {/* 作者头部信息 */}
         <div className="flex items-start mb-6">
           <img
             src={blogAuthor?.avatar}
@@ -250,13 +221,9 @@ export default function BlogHomepage() {
             </p>
           </div>
         </div>
-
-        {/* 作者介绍 */}
         <p className="mb-6 text-sm leading-relaxed text-gray-600 dark:text-gray-300">
           {blogAuthor?.selfIntroduction}
         </p>
-
-        {/* 数据统计 */}
         <div className="grid grid-cols-3 gap-4 text-center">
           <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
@@ -266,7 +233,6 @@ export default function BlogHomepage() {
               <span className="mr-1">📝</span>文章
             </div>
           </div>
-
           <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
               {tagList.length}
@@ -275,7 +241,6 @@ export default function BlogHomepage() {
               <span className="mr-1">🏷️</span>标签
             </div>
           </div>
-
           <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700">
             <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
               {articleCategoryTotal}
@@ -289,7 +254,6 @@ export default function BlogHomepage() {
     )
   }
 
-  // 渲染tag列表
   const renderTagList = () => {
     return (
       <div className="p-6 rounded-lg shadow-sm bg-white dark:bg-gray-800">
@@ -316,15 +280,17 @@ export default function BlogHomepage() {
       </div>
     )
   }
+
   return (
     <div className={`grid md:grid-cols-3 gap-8  min-h-[90vh] md:min-h-0`}>
-      {/* 文章列表 - col-span-2:占父盒子大小2份布局 */}
-      <div className="md:col-span-2 ">
+      {/* 文章列表区域 */}
+      <div className="md:col-span-2">
+        {/* 文章骨架屏 */}
+        {loading && articleList.length === 0 && <HomeArticleListSkeleton />}
         {/* 空列表显示 */}
         {renderEmpty()}
         {/* 文章列表 */}
         {renderArticleList()}
-        {/* 分页 移动端下拉加载更多 pc端显示分页按钮*/}
         {isMobile ? (
           articleList.length > 0 && (
             <InfiniteScroll
@@ -343,14 +309,25 @@ export default function BlogHomepage() {
         )}
       </div>
 
-      {/* 侧边栏  col-span-2:占父盒子大小1份布局*/}
-      <aside className="space-y-8 hidden md:block ">
-        {/* 作者简介*/}
-        {renderAuthorInfo()}
+      {/* 侧边栏 */}
+      <aside className="space-y-8 hidden md:block">
+        {/* 作者信息骨架屏 */}
+        {!hasQueryRightSiderData && <AuthorInfoSkeleton />}
+        {/* 作者信息 */}
+        {hasQueryRightSiderData && renderAuthorInfo()}
+        {/* 日历骨架屏 */}
+        {!hasQueryRightSiderData && <CalendarSkeleton />}
         {/* 日历组件 */}
-        <BlogCalendar posts={articlePublishDateList} onDayClick={onDayClick} />
+        {hasQueryRightSiderData && (
+          <BlogCalendar
+            posts={articlePublishDateList}
+            onDayClick={onDayClick}
+          />
+        )}
+        {/* 标签骨架屏 */}
+        {!hasQueryRightSiderData && <TagListSkeleton />}
         {/* 标签列表 */}
-        {renderTagList()}
+        {hasQueryRightSiderData && renderTagList()}
       </aside>
     </div>
   )

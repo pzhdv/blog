@@ -8,6 +8,12 @@ import type { Article } from '@/types'
 import { useCategoryStore, useHomeStore } from '@/store'
 
 import MarkdownRenderer from '@/components/MarkdownRenderer'
+import {
+  NavBarSkeleton,
+  TitleSkeleton,
+  TagsSkeleton,
+  ContentSkeleton,
+} from '@/components/Skeleton'
 
 const BlogDetail = () => {
   const { setIsFromDetailPage: setIsFromDetailPageToHome } = useHomeStore()
@@ -21,19 +27,11 @@ const BlogDetail = () => {
   const [article, setArticle] = useState<Article | undefined>()
   const [loading, setLoading] = useState(true)
 
-  // const
   useEffect(() => {
-    /**
-     * 判断是否是数字或数字字符 且大于0
-     * @param value
-     * @returns
-     */
     const isNumeric = (value: string | number | undefined | null): boolean => {
       if (typeof value === 'number') {
-        // 检查是否为数字且大于 0
         return !isNaN(value) && Number.isFinite(value) && value > 0
       } else if (typeof value === 'string') {
-        // 检查是否为数字字符串且大于 0
         return /^[1-9][0-9]*$/.test(value)
       }
       return false
@@ -52,55 +50,49 @@ const BlogDetail = () => {
       }
     }
 
-    // 首页跳转过来的
     if (fromPage && fromPage === 'home') {
       setIsFromDetailPageToHome(true)
     } else if (fromPage && fromPage === 'category') {
       setIsFromDetailPageToCategory(true)
     }
 
-    // id合法
     if (isNumeric(articleId)) {
-      window.scrollTo(0, 0) // 滚动到页面顶部
+      window.scrollTo(0, 0)
       getArticleById()
     } else {
       setLoading(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [articleId, fromPage])
 
-  // 渲染导航栏
   const renderNavigationBar = () => {
     return (
-      !loading && (
-        <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
-          <div className="max-w-full px-4 sm:px-6 lg:px-8">
-            <div className="h-16 flex items-center">
-              <button
-                onClick={() => navigate(-1)}
-                className="hover:cursor-pointer flex items-center gap-2 text-gray-600 dark:text-gray-400  hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
+        <div className="max-w-full px-4 sm:px-6 lg:px-8">
+          <div className="h-16 flex items-center">
+            <button
+              onClick={() => navigate(-1)}
+              className="hover:cursor-pointer flex items-center gap-2 text-gray-600 dark:text-gray-400  hover:text-blue-500 dark:hover:text-blue-400 transition-colors"
+            >
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 1024 1024"
+                version="1.1"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                <svg
-                  className="h-4 w-4"
-                  viewBox="0 0 1024 1024"
-                  version="1.1"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M142.5408 480h806.762667a32 32 0 1 1 0 64H141.986133l368.029867 368.0256a32 32 0 1 1-45.256533 45.256533l-398.912-398.912c-25.4592-25.454933-25.4592-66.730667 0-92.1856l398.912-398.912a32 32 0 0 1 45.256533 45.252267L142.5408 480z"
-                    p-id="1478"
-                    fill="currentColor"
-                  ></path>
-                </svg>
-                <span className="font-medium">返回</span>
-              </button>
-            </div>
+                <path
+                  d="M142.5408 480h806.762667a32 32 0 1 1 0 64H141.986133l368.029867 368.0256a32 32 0 1 1-45.256533 45.256533l-398.912-398.912c-25.4592-25.454933-25.4592-66.730667 0-92.1856l398.912-398.912a32 32 0 0 1 45.256533 45.252267L142.5408 480z"
+                  p-id="1478"
+                  fill="currentColor"
+                ></path>
+              </svg>
+              <span className="font-medium">返回</span>
+            </button>
           </div>
         </div>
-      )
+      </div>
     )
   }
-  // 渲染文章不存在
+
   const renderArticleEmpty = () => {
     return (
       !loading &&
@@ -128,18 +120,15 @@ const BlogDetail = () => {
       )
     )
   }
-  // 渲染文章详情
+
   const renderArticleDetail = () => {
     if (!article) return
     return (
       <article className="space-y-8 ">
-        {/* 标题区 */}
         <div className="space-y-6">
           <h1 className="text-4xl font-bold text-gray-900 dark:text-gray-100 tracking-tight leading-tight break-words">
             {article?.title}
           </h1>
-
-          {/* 发布时间或更新时间 */}
           <div className="flex items-center gap-6 text-gray-600 dark:text-gray-400">
             <div className="flex items-center gap-2">
               <svg
@@ -154,12 +143,10 @@ const BlogDetail = () => {
                   p-id="1620"
                 ></path>
               </svg>
-              {article?.createTime?.split(' ')[0]} {/* "2025-05-06 01:42:09" */}
+              {article?.createTime?.split(' ')[0]}
             </div>
           </div>
         </div>
-
-        {/* 标签部分 */}
         <div className="flex gap-2 mb-8">
           {article?.articleTagList?.map(category => (
             <span
@@ -170,15 +157,7 @@ const BlogDetail = () => {
             </span>
           ))}
         </div>
-
-        {/* 描述 */}
-        {/* <div className="text-gray-700 dark:text-gray-300 mb-0">
-          {article?.excerpt}
-        </div> */}
-
-        {/* 正文内容 */}
         <div className="prose prose-lg dark:prose-invert overflow-x-hidden">
-          {/* px-2  */}
           <div className="text-gray-700 dark:text-gray-300 space-y-8 px-0 md:px-2 ">
             <MarkdownRenderer content={article?.markdown || ''} />
           </div>
@@ -189,10 +168,20 @@ const BlogDetail = () => {
 
   return (
     <div className="min-h-[90vh] md:min-h-[50vh]">
+      {/* 导航栏骨架屏 */}
+      {loading && <NavBarSkeleton />}
       {/* 导航栏 */}
-      {renderNavigationBar()}
+      {!loading && renderNavigationBar()}
+
       {/* 主体内容 */}
       <div className="max-w-full mx-auto px-0 md:px-4 sm:px-6 lg:px-8 py-8 ">
+        {/* 标题骨架屏 */}
+        {loading && <TitleSkeleton />}
+        {/* 标签骨架屏 */}
+        {loading && <TagsSkeleton />}
+        {/* 内容骨架屏 */}
+        {loading && <ContentSkeleton />}
+
         {/* 文章不存在状态 */}
         {renderArticleEmpty()}
         {/* 渲染文章详情 */}

@@ -15,92 +15,89 @@ import { collectCategoryIds } from '@/utils/categoryPageUtils'
 import IconFont from '@/components/IconFont'
 import PcPagination from '@/components/PcPagination'
 import InfiniteScroll from '@/components/InfiniteScroll'
+import {
+  CategoryNavSkeleton,
+  CategoryArticleListSkeleton,
+  BreadcrumbSkeleton,
+  PaginationSkeleton,
+} from '@/components/Skeleton'
 
-const ROOT_CATEGORY_ID = 1 // 树根节点id为1 查询分类列表不需要查出树根
-const PC_PageSize = 3 //PC端默认页大小
-const Mobile_PageSize = 4 //移动端默认页大小
+const ROOT_CATEGORY_ID = 1
+const PC_PageSize = 3
+const Mobile_PageSize = 4
 
 export default function BlogCategoryPage() {
   const isMobile = useDeviceType()
   const navigate = useNavigate()
 
   const {
-    articleCategoryTreeList, // 分类树列表，表示文章分类的层级结构
-    articleCategoryList, // 分类列表，将分类树转换为扁平化的列表
+    articleCategoryTreeList,
+    articleCategoryList,
 
-    hasInitSearch, // 是否已经初始化查询过了
-    initFetch, // 初始化查询 查询分类树 查询文章列表
+    hasInitSearch,
+    loading,
+    initFetch,
 
-    articleList, // 文章列表，存储当前分类下的文章
-    totalPage, // 总分页数，表示文章列表的总页数
-    currentPage, // 当前页码，用于分页显示文章
-    hasMore, // 是否还有更多文章，用于支持“加载更多”功能
-    loading, // 加载状态，表示是否正在加载数据
-    queryArticleList, // 查询文章列表的方法
-    loadMore, // 加载更多文章的方法
+    articleList,
+    totalPage,
+    currentPage,
+    hasMore,
+    queryArticleList,
+    loadMore,
 
-    isFromDetailPage, // 是否是从详情页面返回，用于处理返回逻辑
-    setIsFromDetailPage, // 设置是否是从详情页面返回
+    isFromDetailPage,
+    setIsFromDetailPage,
 
-    expandedCategories, // 展开/折叠的分类，记录哪些分类被展开或折叠
-    setExpandedCategories, // 设置展开/折叠的分类
+    expandedCategories,
+    setExpandedCategories,
 
-    activeCategoryId, // 当前激活的分类 ID，用于标识当前选中的分类
-    setActiveCategoryId, // 设置当前激活分类的Id
+    activeCategoryId,
+    setActiveCategoryId,
 
-    currentCategoryPathList, // 当前路径，表示用户在分类树中选择的路径
-    setCurrentCategoryPathList, // 设置当前路径
+    currentCategoryPathList,
+    setCurrentCategoryPathList,
 
-    scrollTop, // 滚动高度，用于记录用户滚动的位置
-    setScrollTop, // 设置滚动高度
+    scrollTop,
+    setScrollTop,
 
-    hasQueryArticleList, // 是否已经查询过文章列表，用于避免重复查询
+    hasQueryArticleList,
   } = useCategoryStore()
 
-  const previousIsMobileRef = useRef(isMobile) // 使用 useRef 跟踪上一次的设备状态，避免不必要的重新渲染
+  const previousIsMobileRef = useRef(isMobile)
   const [queryParams, setQueryParams] = useState<QueryParams>({
     pageSize: isMobile ? Mobile_PageSize : PC_PageSize,
     pageNum: currentPage,
-    categoryIds: [], // 点击的分类id列表(包含子分类id)
+    categoryIds: [],
   })
 
-  // 初始化查询
   useEffect(() => {
     if (!hasInitSearch) {
       initFetch(ROOT_CATEGORY_ID, queryParams)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasInitSearch, queryParams])
 
-  // 实时响应式PC-移动 查询文章列表
   useEffect(() => {
-    const isFirstLoading = !hasQueryArticleList // 是否是第一次加载
+    const isFirstLoading = !hasQueryArticleList
     const deviceTypeHasChanged =
-      hasQueryArticleList && isMobile !== previousIsMobileRef.current // 设备是否切换
+      hasQueryArticleList && isMobile !== previousIsMobileRef.current
 
-    // 如果两个条件都不满足，则什么都不做
     if (!isFirstLoading && !deviceTypeHasChanged) {
       return
     }
 
-    //  更新设备状态
     previousIsMobileRef.current = isMobile
 
-    // 准备新的查询参数并调用查询函数
     const newParams = {
       pageSize: isMobile ? Mobile_PageSize : PC_PageSize,
-      pageNum: 1, // 切换设备时、或第一次查询,重置到第一页
+      pageNum: 1,
     }
-    setQueryParams(newParams) // 更新本地 state
-    queryArticleList(newParams) // 调用查询函数查询文章列表
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setQueryParams(newParams)
+    queryArticleList(newParams)
   }, [hasQueryArticleList, isMobile])
 
-  // 处理分类树默认展开折叠 PC - 全部展开  Mobile - 全部折叠
   useEffect(() => {
     const handleCategoriesExpansion = () => {
       if (isMobile) {
-        // Mobile - 全部折叠
         const allCollapsed = articleCategoryList.reduce(
           (acc, category) => {
             acc[category.categoryId] = false
@@ -110,7 +107,6 @@ export default function BlogCategoryPage() {
         )
         setExpandedCategories({ ...allCollapsed, ...expandedCategories })
       } else {
-        // PC - 全部展开
         const allExpanded = articleCategoryList.reduce(
           (acc, category) => {
             acc[category.categoryId] = true
@@ -121,102 +117,73 @@ export default function BlogCategoryPage() {
         setExpandedCategories(allExpanded)
       }
     }
-    // 处理展开折叠
     handleCategoriesExpansion()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, articleCategoryList])
 
-  // 处理位置
   useEffect(() => {
-    // 如果是移动端
     if (isMobile) {
-      // 如果是从详情页面返回的，则滚动到离开页面之前的位置
       if (isFromDetailPage) {
         window.scrollTo(0, scrollTop)
       } else {
-        // 否则，滚动到顶部
         window.scrollTo(0, 0)
       }
     }
-    // 在组件卸载时，重置 isFromDetailPage 状态
     return () => {
       setIsFromDetailPage(false)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMobile, scrollTop, isFromDetailPage])
 
-  // todo 通用的更新查询参数和文章列表请求
   const updateAndRefetch = (newQueryPart: Partial<QueryParams>) => {
-    // 将新的查询参数部分与旧的参数合并
     const newParams = { ...queryParams, ...newQueryPart }
-
-    // 更新查询参数
     setQueryParams(newParams)
-
-    // 使用最新的参数去请求文章列表
     queryArticleList(newParams)
   }
 
-  // 获取分类的完整路径
   const getCategoryPath = (
     category: ArticleCategory,
     allCategories: ArticleCategory[],
   ): string[] => {
-    const path: string[] = [category.categoryName] // 初始化路径，包含当前分类名称
+    const path: string[] = [category.categoryName]
 
-    // 递归查找父级分类
     const findParentPath = (categoryId: number): void => {
       const parentCategory = allCategories.find(
         cat => cat.categoryId === categoryId,
       )
       if (parentCategory) {
-        path.unshift(parentCategory.categoryName) // 将父级分类名称添加到路径的开头
-        findParentPath(parentCategory.parentId) // 继续递归查找上一级父级分类
+        path.unshift(parentCategory.categoryName)
+        findParentPath(parentCategory.parentId)
       }
     }
 
-    // 从当前分类的父级分类开始递归查找路径
     if (category.parentId) {
       findParentPath(category.parentId)
     }
 
-    return path // 返回完整的路径
+    return path
   }
 
-  // ! 分页按钮被被点击
   const handlePageButtonClick = (pageNum: number) => {
     updateAndRefetch({ pageNum })
   }
 
-  // !处理分类点击事件
   const handleCategoryClick = (category: ArticleCategory) => {
-    // 1、获取分类的完整路径
     const fullPath = getCategoryPath(category, articleCategoryList)
     setCurrentCategoryPathList(fullPath)
-
-    //  2、更新激活Id
     setActiveCategoryId(category.categoryId)
-
-    // 3、获取当前分类及子分类的id列表 用于按分类查询文章列表
     const categoryIds = collectCategoryIds(category)
-
-    //  4、跟新数据并且查询文章列表 从第一页开始
     updateAndRefetch({ categoryIds, pageNum: 1 })
   }
 
-  //  ! 上拉加载更多事件
   const handleLoadMore = async () => {
     if (loading) return
     loadMore(queryParams)
   }
 
-  // !跳转文章详情
   const toDetailPage = (articleId: number) => {
-    setScrollTop(window.scrollY) // 保存离开之前滚动位置
+    setScrollTop(window.scrollY)
     navigate(`/detail/${articleId}`, { state: { from: 'category' } })
   }
 
-  // !切换分类展开/折叠状态
   const toggleCategoryExpansion = (categoryId: number) => {
     setExpandedCategories({
       ...expandedCategories,
@@ -224,7 +191,6 @@ export default function BlogCategoryPage() {
     })
   }
 
-  // 渲染左侧分类
   const renderLeftCategory = () => {
     return (
       <div className="md:w-64 mb-6 md:mb-0">
@@ -240,16 +206,14 @@ export default function BlogCategoryPage() {
     )
   }
 
-  // 分类树渲染
   const renderCategoryTree = (items: ArticleCategory[], level = 0) => {
     return items.map(category => (
       <div
         key={category.categoryId}
         className={`relative ${level > 0 ? 'ml-4' : ''}`}
-        onClick={e => e.stopPropagation()} // 阻止事件冒泡
+        onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center gap-2">
-          {/* 主点击区域 */}
           <button
             onClick={e => {
               e.stopPropagation()
@@ -263,7 +227,7 @@ export default function BlogCategoryPage() {
               }
               ${level > 0 ? 'text-sm' : 'font-medium'}
               dark:text-gray-200
-              ${activeCategoryId === category.categoryId ? 'bg-purple-100 text-purple-600 dark:bg-purple-800/70 dark:text-purple-200' : ''}`} // 动态切换激活样式
+              ${activeCategoryId === category.categoryId ? 'bg-purple-100 text-purple-600 dark:bg-purple-800/70 dark:text-purple-200' : ''}`}
           >
             <span className="dark:text-gray-400">
               <IconFont iconClass={category.iconClass} size={20} />
@@ -274,7 +238,6 @@ export default function BlogCategoryPage() {
             </span>
           </button>
 
-          {/* 展开/折叠按钮 */}
           {category.children && category.children.length > 0 && (
             <button
               onClick={e => {
@@ -301,7 +264,6 @@ export default function BlogCategoryPage() {
           )}
         </div>
 
-        {/* 子分类容器 */}
         {category.children && expandedCategories[category.categoryId] && (
           <div className="mt-1 pl-2 border-l-2 border-gray-200 dark:border-gray-600">
             {renderCategoryTree(category.children, level + 1)}
@@ -311,7 +273,6 @@ export default function BlogCategoryPage() {
     ))
   }
 
-  // 渲染当前分类路径
   const renderBreadcrumb = () => {
     return (
       <div className="mb-6 flex items-center overflow-x-auto pb-2">
@@ -329,7 +290,6 @@ export default function BlogCategoryPage() {
     )
   }
 
-  // 渲染文章空列表显示状态
   const renderArticleListEmpty = () => {
     if (loading) {
       return
@@ -378,7 +338,7 @@ export default function BlogCategoryPage() {
       )
     )
   }
-  // 渲染文章列表
+
   const renderArticleList = () => {
     return articleList.map(article => (
       <article
@@ -394,10 +354,7 @@ export default function BlogCategoryPage() {
           />
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
-              <time>
-                {article.createTime?.split(' ')[0]}{' '}
-                {/* "2025-05-06 01:42:09" */}
-              </time>
+              <time>{article.createTime?.split(' ')[0]}</time>
               <div className="flex gap-1">
                 {article.articleCategoryList?.map((cat, index) => (
                   <span
@@ -426,37 +383,53 @@ export default function BlogCategoryPage() {
 
   return (
     <div className="md:flex md:gap-8 max-w-7xl mx-auto px-4 py-6 min-h-[90vh] md:min-h-[50vh]">
+      {/* 分类导航骨架屏 */}
+      {!hasInitSearch && <CategoryNavSkeleton />}
       {/* 分类侧边栏 */}
-      {renderLeftCategory()}
+      {hasInitSearch && renderLeftCategory()}
 
       {/* 主内容区 */}
       <div className="flex-1">
-        {/* 当前路径 */}
-        {renderBreadcrumb()}
+        {/* 面包屑骨架屏 */}
+        {!hasInitSearch && <BreadcrumbSkeleton />}
+        {/* 面包屑导航 */}
+        {hasInitSearch && renderBreadcrumb()}
+
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none overflow-hidden">
-          {/* 渲染空列表为空显示 */}
+          {/* 文章列表骨架屏 */}
+          {loading && articleList.length === 0 && (
+            <CategoryArticleListSkeleton />
+          )}
+          {/* 空列表为空显示 */}
           {renderArticleListEmpty()}
           {/* 文章列表 */}
           {renderArticleList()}
         </div>
 
-        {/* 分页 移动端下拉加载更多 pc端显示分页按钮*/}
-        {isMobile ? (
-          articleList.length > 0 && (
-            <InfiniteScroll
-              loadMore={handleLoadMore}
-              hasMore={hasMore}
-              loading={loading}
-              threshold={50}
-            />
-          )
-        ) : (
+        {/* 分页骨架屏 */}
+        {!isMobile && loading && articleList.length === 0 && (
+          <PaginationSkeleton />
+        )}
+        {/* 分页 */}
+        {!isMobile && (
           <PcPagination
             totalPage={totalPage}
             currentPage={currentPage}
             onClick={handlePageButtonClick}
           />
         )}
+
+        {/* 移动端无限滚动 */}
+        {isMobile
+          ? articleList.length > 0 && (
+              <InfiniteScroll
+                loadMore={handleLoadMore}
+                hasMore={hasMore}
+                loading={loading}
+                threshold={50}
+              />
+            )
+          : null}
       </div>
     </div>
   )
