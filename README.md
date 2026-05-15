@@ -13,6 +13,7 @@
 - 📅 **博客日历**: 可视化展示文章发布时间
 - ♾️ **无限滚动**: 优化的文章列表加载体验
 - 🎯 **SEO 友好**: 完善的 meta 标签和语义化结构
+- 🔄 **骨架屏加载**: 优雅的加载占位体验
 - 📦 **代码分割**: 智能的 chunk 分包策略，优化加载性能
 
 ## 🛠️ 技术栈
@@ -71,6 +72,12 @@ blog/
 │   │   ├── BlogCalendar/   # 博客日历组件
 │   │   ├── GlobalErrorBoundary.tsx
 │   │   ├── MarkdownRenderer.tsx
+│   │   ├── Skeleton/       # 骨架屏组件
+│   │   │   ├── HomeSkeleton.tsx
+│   │   │   ├── BlogDetailSkeleton.tsx
+│   │   │   ├── CategorySkeleton.tsx
+│   │   │   ├── AboutSkeleton.tsx
+│   │   │   └── SkeletonBase.tsx
 │   │   ├── ThemeToggle.tsx
 │   │   └── ...
 │   ├── context/            # React Context
@@ -86,6 +93,7 @@ blog/
 │   │   └── About.tsx       # 关于页面
 │   ├── routers/            # 路由配置
 │   ├── store/              # Zustand 状态管理
+│   │   └── home.ts         # 首页状态管理
 │   ├── types/              # TypeScript 类型定义
 │   ├── utils/              # 工具函数
 │   └── App.tsx             # 应用入口
@@ -236,13 +244,12 @@ pc端与移动端展示各相不同：
 - Open Graph 协议支持
 - 结构化数据标记
 
-## 🤝 贡献指南
+## 👨‍💻 作者
 
-1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`npm run commit`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 创建 Pull Request
+- 🧩 **潘宗晖 (PanZonghui)**
+- 🌐 **博客**: https://pzhdv.cn
+- 📧 **邮箱**: 1939673715@qq.com
+- 🐙 **GitHub**: https://github.com/pzhdv
 
 ## 🙏 致谢
 

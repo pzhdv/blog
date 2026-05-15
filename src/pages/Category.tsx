@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 
 import useDeviceType from '@/hooks/useDeviceType'
 
@@ -25,6 +26,8 @@ import {
 const ROOT_CATEGORY_ID = 1
 const PC_PageSize = 3
 const Mobile_PageSize = 4
+const SITE_NAME = import.meta.env.VITE_SITE_NAME || '技术博客'
+const SITE_URL = import.meta.env.VITE_SITE_URL || ''
 
 export default function BlogCategoryPage() {
   const isMobile = useDeviceType()
@@ -381,56 +384,74 @@ export default function BlogCategoryPage() {
     ))
   }
 
+  const renderHelmet = () => (
+    <Helmet>
+      <title>{`分类浏览 - ${SITE_NAME}`}</title>
+      <meta
+        name="description"
+        content={`${SITE_NAME} - 按分类浏览所有技术文章，包括 ${currentCategoryPathList[currentCategoryPathList.length - 1] || '全部分类'} 等`}
+      />
+      <meta
+        name="keywords"
+        content="技术博客, 文章分类, 前端开发, React, TypeScript"
+      />
+      <link rel="canonical" href={`${SITE_URL}/category`} />
+    </Helmet>
+  )
+
   return (
-    <div className="md:flex md:gap-8 max-w-7xl mx-auto px-4 py-6 min-h-[90vh] md:min-h-[50vh]">
-      {/* 分类导航骨架屏 */}
-      {!hasInitSearch && <CategoryNavSkeleton />}
-      {/* 分类侧边栏 */}
-      {hasInitSearch && renderLeftCategory()}
+    <>
+      {renderHelmet()}
+      <div className="md:flex md:gap-8 max-w-7xl mx-auto px-4 py-6 min-h-[90vh] md:min-h-[50vh]">
+        {/* 分类导航骨架屏 */}
+        {!hasInitSearch && <CategoryNavSkeleton />}
+        {/* 分类侧边栏 */}
+        {hasInitSearch && renderLeftCategory()}
 
-      {/* 主内容区 */}
-      <div className="flex-1">
-        {/* 面包屑骨架屏 */}
-        {!hasInitSearch && <BreadcrumbSkeleton />}
-        {/* 面包屑导航 */}
-        {hasInitSearch && renderBreadcrumb()}
+        {/* 主内容区 */}
+        <div className="flex-1">
+          {/* 面包屑骨架屏 */}
+          {!hasInitSearch && <BreadcrumbSkeleton />}
+          {/* 面包屑导航 */}
+          {hasInitSearch && renderBreadcrumb()}
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none overflow-hidden">
-          {/* 文章列表骨架屏 */}
-          {loading && articleList.length === 0 && (
-            <CategoryArticleListSkeleton />
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm dark:shadow-none overflow-hidden">
+            {/* 文章列表骨架屏 */}
+            {loading && articleList.length === 0 && (
+              <CategoryArticleListSkeleton />
+            )}
+            {/* 空列表为空显示 */}
+            {renderArticleListEmpty()}
+            {/* 文章列表 */}
+            {renderArticleList()}
+          </div>
+
+          {/* 分页骨架屏 */}
+          {!isMobile && loading && articleList.length === 0 && (
+            <PaginationSkeleton />
           )}
-          {/* 空列表为空显示 */}
-          {renderArticleListEmpty()}
-          {/* 文章列表 */}
-          {renderArticleList()}
+          {/* 分页 */}
+          {!isMobile && (
+            <PcPagination
+              totalPage={totalPage}
+              currentPage={currentPage}
+              onClick={handlePageButtonClick}
+            />
+          )}
+
+          {/* 移动端无限滚动 */}
+          {isMobile
+            ? articleList.length > 0 && (
+                <InfiniteScroll
+                  loadMore={handleLoadMore}
+                  hasMore={hasMore}
+                  loading={loading}
+                  threshold={50}
+                />
+              )
+            : null}
         </div>
-
-        {/* 分页骨架屏 */}
-        {!isMobile && loading && articleList.length === 0 && (
-          <PaginationSkeleton />
-        )}
-        {/* 分页 */}
-        {!isMobile && (
-          <PcPagination
-            totalPage={totalPage}
-            currentPage={currentPage}
-            onClick={handlePageButtonClick}
-          />
-        )}
-
-        {/* 移动端无限滚动 */}
-        {isMobile
-          ? articleList.length > 0 && (
-              <InfiniteScroll
-                loadMore={handleLoadMore}
-                hasMore={hasMore}
-                loading={loading}
-                threshold={50}
-              />
-            )
-          : null}
       </div>
-    </div>
+    </>
   )
 }

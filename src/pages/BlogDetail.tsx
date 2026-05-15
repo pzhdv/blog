@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 
 import { queryArticleById } from '@/api'
 
@@ -14,6 +15,9 @@ import {
   TagsSkeleton,
   ContentSkeleton,
 } from '@/components/Skeleton'
+
+const SITE_NAME = import.meta.env.VITE_SITE_NAME || '技术博客'
+const SITE_URL = import.meta.env.VITE_SITE_URL || ''
 
 const BlogDetail = () => {
   const { setIsFromDetailPage: setIsFromDetailPageToHome } = useHomeStore()
@@ -66,7 +70,8 @@ const BlogDetail = () => {
 
   const renderNavigationBar = () => {
     return (
-      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
+      // w-6xl 与layout/index.tsx main保持一致 用于撑开盒子
+      <div className="md:min-w-5xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-b border-gray-100 dark:border-gray-800">
         <div className="max-w-full px-4 sm:px-6 lg:px-8">
           <div className="h-16 flex items-center">
             <button
@@ -166,28 +171,80 @@ const BlogDetail = () => {
     )
   }
 
+  const renderHelmet = () => (
+    <Helmet>
+      <title>
+        {article?.title ? `${article.title} - ${SITE_NAME}` : '文章详情'}
+      </title>
+      {article && (
+        <>
+          <meta name="description" content={article.excerpt || article.title} />
+          <meta
+            name="keywords"
+            content={
+              article.articleTagList?.map(t => t.articleTagName).join(', ') ||
+              ''
+            }
+          />
+          <link rel="canonical" href={`${SITE_URL}/detail/${articleId}`} />
+          <meta
+            property="og:title"
+            content={`${article.title} - ${SITE_NAME}`}
+          />
+          <meta
+            property="og:description"
+            content={article.excerpt || article.title}
+          />
+          <meta property="og:url" content={`${SITE_URL}/detail/${articleId}`} />
+          <meta property="og:type" content="article" />
+          {article.image && (
+            <meta property="og:image" content={article.image} />
+          )}
+          <meta
+            property="article:published_time"
+            content={article.createTime || ''}
+          />
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta
+            name="twitter:title"
+            content={`${article.title} - ${SITE_NAME}`}
+          />
+          <meta
+            name="twitter:description"
+            content={article.excerpt || article.title}
+          />
+          {article.image && (
+            <meta name="twitter:image" content={article.image} />
+          )}
+        </>
+      )}
+    </Helmet>
+  )
   return (
-    <div className="min-h-[90vh] md:min-h-[50vh]">
-      {/* 导航栏骨架屏 */}
-      {loading && <NavBarSkeleton />}
-      {/* 导航栏 */}
-      {!loading && renderNavigationBar()}
+    <>
+      {renderHelmet()}
+      <div className="min-h-[70vh] md:min-h-[50vh]">
+        {/* 导航栏骨架屏 */}
+        {loading && <NavBarSkeleton />}
+        {/* 导航栏 */}
+        {!loading && renderNavigationBar()}
 
-      {/* 主体内容 */}
-      <div className="max-w-full mx-auto px-0 md:px-4 sm:px-6 lg:px-8 py-8 ">
-        {/* 标题骨架屏 */}
-        {loading && <TitleSkeleton />}
-        {/* 标签骨架屏 */}
-        {loading && <TagsSkeleton />}
-        {/* 内容骨架屏 */}
-        {loading && <ContentSkeleton />}
+        {/* 主体内容 */}
+        <div className="max-w-full mx-auto px-0 md:px-4 sm:px-6 lg:px-8 py-8 ">
+          {/* 标题骨架屏 */}
+          {loading && <TitleSkeleton />}
+          {/* 标签骨架屏 */}
+          {loading && <TagsSkeleton />}
+          {/* 内容骨架屏 */}
+          {loading && <ContentSkeleton />}
 
-        {/* 文章不存在状态 */}
-        {renderArticleEmpty()}
-        {/* 渲染文章详情 */}
-        {renderArticleDetail()}
+          {/* 文章不存在状态 */}
+          {renderArticleEmpty()}
+          {/* 渲染文章详情 */}
+          {renderArticleDetail()}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Helmet } from 'react-helmet-async'
 
 import useDeviceType from '@/hooks/useDeviceType'
 
@@ -16,6 +17,9 @@ import {
   CalendarSkeleton,
   TagListSkeleton,
 } from '@/components/Skeleton'
+
+const SITE_NAME = import.meta.env.VITE_SITE_NAME || '技术博客'
+const SITE_URL = import.meta.env.VITE_SITE_URL || ''
 
 const PC_PageSize = 4
 const Mobile_PageSize = 5
@@ -281,54 +285,81 @@ export default function BlogHomepage() {
     )
   }
 
+  const renderHelmet = () => (
+    <Helmet>
+      <title>{`首页 - ${SITE_NAME}`}</title>
+      <meta
+        name="description"
+        content={`${SITE_NAME} - 分享前端技术、Web开发、性能优化等优质技术文章`}
+      />
+      <meta
+        name="keywords"
+        content="技术博客, 前端开发, React, TypeScript, Web开发"
+      />
+      <link rel="canonical" href={SITE_URL} />
+      <meta property="og:title" content={`首页 - ${SITE_NAME}`} />
+      <meta
+        property="og:description"
+        content={`${SITE_NAME} - 分享前端技术、Web开发、性能优化等优质技术文章`}
+      />
+      <meta property="og:url" content={SITE_URL} />
+      <meta property="og:type" content="website" />
+      <meta name="twitter:card" content="summary" />
+      <meta name="twitter:title" content={`首页 - ${SITE_NAME}`} />
+    </Helmet>
+  )
   return (
-    <div className={`grid md:grid-cols-3 gap-8  min-h-[90vh] md:min-h-0`}>
-      {/* 文章列表区域 */}
-      <div className="md:col-span-2">
-        {/* 文章骨架屏 */}
-        {loading && articleList.length === 0 && <HomeArticleListSkeleton />}
-        {/* 空列表显示 */}
-        {renderEmpty()}
-        {/* 文章列表 */}
-        {renderArticleList()}
-        {isMobile ? (
-          articleList.length > 0 && (
-            <InfiniteScroll
-              loadMore={handleLoadMore}
-              hasMore={hasMore}
-              loading={loading}
-              threshold={50}
-            />
-          )
-        ) : (
-          <PcPagination
-            totalPage={totalPage}
-            currentPage={currentPage}
-            onClick={handlePageButtonClick}
-          />
-        )}
-      </div>
+    <>
+      {renderHelmet()}
 
-      {/* 侧边栏 */}
-      <aside className="space-y-8 hidden md:block">
-        {/* 作者信息骨架屏 */}
-        {!hasQueryRightSiderData && <AuthorInfoSkeleton />}
-        {/* 作者信息 */}
-        {hasQueryRightSiderData && renderAuthorInfo()}
-        {/* 日历骨架屏 */}
-        {!hasQueryRightSiderData && <CalendarSkeleton />}
-        {/* 日历组件 */}
-        {hasQueryRightSiderData && (
-          <BlogCalendar
-            posts={articlePublishDateList}
-            onDayClick={onDayClick}
-          />
-        )}
-        {/* 标签骨架屏 */}
-        {!hasQueryRightSiderData && <TagListSkeleton />}
-        {/* 标签列表 */}
-        {hasQueryRightSiderData && renderTagList()}
-      </aside>
-    </div>
+      <div className={`grid md:grid-cols-3 gap-8  min-h-[90vh] md:min-h-0`}>
+        {/* 文章列表区域 */}
+        <div className="md:col-span-2">
+          {/* 文章骨架屏 */}
+          {loading && articleList.length === 0 && <HomeArticleListSkeleton />}
+          {/* 空列表显示 */}
+          {renderEmpty()}
+          {/* 文章列表 */}
+          {renderArticleList()}
+          {isMobile ? (
+            articleList.length > 0 && (
+              <InfiniteScroll
+                loadMore={handleLoadMore}
+                hasMore={hasMore}
+                loading={loading}
+                threshold={50}
+              />
+            )
+          ) : (
+            <PcPagination
+              totalPage={totalPage}
+              currentPage={currentPage}
+              onClick={handlePageButtonClick}
+            />
+          )}
+        </div>
+
+        {/* 侧边栏 */}
+        <aside className="space-y-8 hidden md:block">
+          {/* 作者信息骨架屏 */}
+          {!hasQueryRightSiderData && <AuthorInfoSkeleton />}
+          {/* 作者信息 */}
+          {hasQueryRightSiderData && renderAuthorInfo()}
+          {/* 日历骨架屏 */}
+          {!hasQueryRightSiderData && <CalendarSkeleton />}
+          {/* 日历组件 */}
+          {hasQueryRightSiderData && (
+            <BlogCalendar
+              posts={articlePublishDateList}
+              onDayClick={onDayClick}
+            />
+          )}
+          {/* 标签骨架屏 */}
+          {!hasQueryRightSiderData && <TagListSkeleton />}
+          {/* 标签列表 */}
+          {hasQueryRightSiderData && renderTagList()}
+        </aside>
+      </div>
+    </>
   )
 }
