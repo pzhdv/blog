@@ -1,10 +1,10 @@
-# 个人技术博客
+# 个人技术博客前端
 
 一个基于 React + TypeScript + Vite 构建的现代化个人技术博客系统，专注于前端开发、Web技术分享与探索。
 
 ## ✨ 特性
 
-- 🚀 **现代化技术栈**: React 19 + TypeScript + Vite
+- 🚀 **现代化技术栈**: React 19 + TypeScript + Vite 7
 - 🎨 **响应式设计**: 基于 Tailwind CSS 4.x，支持移动端和桌面端
 - 📝 **Markdown 支持**: 完整的 Markdown 渲染，支持代码高亮
 - 🌙 **主题切换**: 支持明暗主题切换
@@ -19,64 +19,81 @@
 
 ### 核心框架
 
-- **React 19** - 用户界面库
-- **TypeScript** - 类型安全的 JavaScript
-- **Vite 7** - 现代化构建工具
-- **React Router 6** - 客户端路由
+| 技术         | 版本   | 说明                  |
+| ------------ | ------ | --------------------- |
+| React        | 19.1.0 | 用户界面库            |
+| TypeScript   | 5.8.3  | 类型安全的 JavaScript |
+| Vite         | 7.0.0  | 现代化构建工具        |
+| React Router | 6.30.1 | 客户端路由            |
 
 ### 样式与UI
 
-- **Tailwind CSS 4** - 原子化 CSS 框架
-- **响应式设计** - 移动端优先的设计理念
+| 技术              | 版本   | 说明                   |
+| ----------------- | ------ | ---------------------- |
+| Tailwind CSS      | 4.1.11 | 原子化 CSS 框架        |
+| @tailwindcss/vite | 4.1.11 | Tailwind CSS Vite 插件 |
 
 ### 状态管理
 
-- **Zustand** - 轻量级状态管理库
-- **React Context** - 全局状态共享
+| 技术          | 版本  | 说明             |
+| ------------- | ----- | ---------------- |
+| Zustand       | 5.0.6 | 轻量级状态管理库 |
+| React Context | 内置  | 全局状态共享     |
 
 ### 数据处理
 
-- **Axios** - HTTP 客户端
-- **React Markdown** - Markdown 渲染
-- **React Syntax Highlighter** - 代码语法高亮
-- **date-fns** - 日期处理工具
+| 技术                     | 版本   | 说明          |
+| ------------------------ | ------ | ------------- |
+| Axios                    | 1.10.0 | HTTP 客户端   |
+| React Markdown           | 10.1.0 | Markdown 渲染 |
+| React Syntax Highlighter | 15.6.1 | 代码语法高亮  |
+| date-fns                 | 4.1.0  | 日期处理工具  |
 
 ### 开发工具
 
-- **ESLint** - 代码质量检查
-- **Prettier** - 代码格式化
-- **Husky** - Git hooks 管理
-- **Commitizen** - 规范化提交信息
-- **lint-staged** - 暂存文件检查
+| 技术        | 版本   | 说明           |
+| ----------- | ------ | -------------- |
+| ESLint      | 9.29.0 | 代码质量检查   |
+| Prettier    | 3.6.2  | 代码格式化     |
+| Husky       | 9.1.7  | Git hooks 管理 |
+| Commitizen  | 4.3.1  | 规范化提交信息 |
+| lint-staged | 16.1.2 | 暂存文件检查   |
 
 ## 📁 项目结构
 
 ```
-src/
-├── api/                 # API 接口定义
-├── assets/             # 静态资源
-├── components/         # 可复用组件
-│   ├── BlogCalendar/   # 博客日历组件
-│   ├── GlobalErrorBoundary.tsx
-│   ├── MarkdownRenderer.tsx
-│   ├── ThemeToggle.tsx
-│   └── ...
-├── context/            # React Context
-├── hooks/              # 自定义 Hooks
-├── layout/             # 布局组件
-│   ├── Header.tsx
-│   ├── Footer.tsx
-│   └── index.tsx
-├── pages/              # 页面组件
-│   ├── Home.tsx        # 首页
-│   ├── BlogDetail.tsx  # 文章详情
-│   ├── Category.tsx    # 分类页面
-│   └── About.tsx       # 关于页面
-├── routers/            # 路由配置
-├── store/              # Zustand 状态管理
-├── types/              # TypeScript 类型定义
-├── utils/              # 工具函数
-└── App.tsx             # 应用入口
+blog/
+├── public/                 # 静态资源
+├── src/
+│   ├── api/                # API 接口定义
+│   ├── assets/             # 静态资源
+│   ├── components/         # 可复用组件
+│   │   ├── BlogCalendar/   # 博客日历组件
+│   │   ├── GlobalErrorBoundary.tsx
+│   │   ├── MarkdownRenderer.tsx
+│   │   ├── ThemeToggle.tsx
+│   │   └── ...
+│   ├── context/            # React Context
+│   ├── hooks/              # 自定义 Hooks
+│   ├── layout/             # 布局组件
+│   │   ├── Header.tsx
+│   │   ├── Footer.tsx
+│   │   └── index.tsx
+│   ├── pages/              # 页面组件
+│   │   ├── Home.tsx        # 首页
+│   │   ├── BlogDetail.tsx  # 文章详情
+│   │   ├── Category.tsx    # 分类页面
+│   │   └── About.tsx       # 关于页面
+│   ├── routers/            # 路由配置
+│   ├── store/              # Zustand 状态管理
+│   ├── types/              # TypeScript 类型定义
+│   ├── utils/              # 工具函数
+│   └── App.tsx             # 应用入口
+├── index.html              # HTML 模板
+├── package.json            # 项目配置
+├── tsconfig.json          # TypeScript 配置
+├── vite.config.ts         # Vite 配置
+└── .cz-config.cjs         # Commitizen 配置
 ```
 
 ## 🚀 快速开始
@@ -167,7 +184,7 @@ npm run commit
 VITE_API_BASE_URL=https://your-api-domain.com/api
 
 # .env.development - 开发环境
-VITE_API_BASE_URL=http://localhost:3000/api
+VITE_API_BASE_URL=http://localhost:8080/blogApi
 
 # .env.production - 生产环境
 VITE_API_BASE_URL=https://your-production-api.com/api
@@ -206,9 +223,11 @@ VITE_API_BASE_URL=https://your-production-api.com/api
 
 ## 📱 响应式设计
 
-pc端与移动端展示各相不同
+pc端与移动端展示各相不同：
 
-- **移动端**: <= 768p
+- **移动端**: <= 768px
+- **平板端**: 769px - 1024px
+- **桌面端**: > 1024px
 
 ## 🔍 SEO 优化
 
@@ -220,21 +239,22 @@ pc端与移动端展示各相不同
 ## 🤝 贡献指南
 
 1. Fork 本仓库
-2. 创建特性分支 (`git checkout -b master`)
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
 3. 提交更改 (`npm run commit`)
-4. 推送到分支 (`git push -u origin master`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 创建 Pull Request
-
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
 
 ## 🙏 致谢
 
 感谢以下开源项目的支持：
 
-- [React](https://reactjs.org/)
-- [Vite](https://vitejs.dev/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Zustand](https://github.com/pmndrs/zustand)
-- [React Markdown](https://github.com/remarkjs/react-markdown)
+- ⚡ [Vite](https://vitejs.dev/) — 下一代前端构建工具
+- ⚛️ [React](https://react.dev/) — 用于构建用户界面的 JavaScript 库
+- 📘 [TypeScript](https://www.typescriptlang.org/) — JavaScript 的超集
+- 🎨 [Tailwind CSS](https://tailwindcss.com/) — 实用优先的 CSS 框架
+- 🗃️ [Zustand](https://github.com/pmndrs/zustand) — 轻量级 React 状态管理
+- 📝 [React Markdown](https://github.com/remarkjs/react-markdown) — React Markdown 渲染组件
+
+---
+
+如果这个项目对你有帮助，请给个 ⭐ Star 支持一下！
