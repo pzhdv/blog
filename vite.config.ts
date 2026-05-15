@@ -163,6 +163,9 @@ function createOptimizedChunks(): (id: string) => string | undefined {
     ]),
     // 语法高亮
     syntax: new Set(['react-syntax-highlighter', 'refractor']),
+    // React 页面标题/SEO 管理依赖
+    // react-helmet-async：安全管理文档 head 标签（title、meta 等）
+    helmet: new Set(['react-helmet-async']),
   }
 
   // 小依赖集合（<1KB）
