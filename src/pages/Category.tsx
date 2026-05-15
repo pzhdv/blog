@@ -386,7 +386,7 @@ export default function BlogCategoryPage() {
 
   const renderHelmet = () => (
     <Helmet>
-      <title>{`分类浏览 - ${SITE_NAME}`}</title>
+      <title>{`分类 - ${SITE_NAME}`}</title>
       <meta
         name="description"
         content={`${SITE_NAME} - 按分类浏览所有技术文章，包括 ${currentCategoryPathList[currentCategoryPathList.length - 1] || '全部分类'} 等`}

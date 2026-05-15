@@ -1,6 +1,15 @@
-# 个人技术博客前端
+# 📚 个人技术博客前端
 
 一个基于 React + TypeScript + Vite 构建的现代化个人技术博客系统，专注于前端开发、Web技术分享与探索。
+
+> 在线预览 https://pzhdv.cn
+
+### 项目仓库
+
+- 前端：https://github.com/pzhdv/blog
+- 前端 API：https://github.com/pzhdv/blog-api
+- 后台管理：https://github.com/pzhdv/blog-admin
+- 后台 API：https://github.com/pzhdv/blog-admin-api
 
 ## ✨ 特性
 
@@ -16,9 +25,30 @@
 - 🔄 **骨架屏加载**: 优雅的加载占位体验
 - 📦 **代码分割**: 智能的 chunk 分包策略，优化加载性能
 
+## 📸 成果展示
+
+### 🖥️ pc端
+
+**骨架屏**(加载数据)
+![潘宗晖个人博客-pc端-骨架屏](./docs/images/pc-skeleton.png)
+**首页**
+![潘宗晖个人博客-pc端-首页](./docs/images/pc-home.png)
+**文章分类**
+![潘宗晖个人博客-pc端-文章分类](./docs/images/pc-category.png)
+**文章详情**
+![潘宗晖个人博客-pc端-文章详情](./docs/images/pc-detail.png)
+**关于我**
+![潘宗晖个人博客-pc端-关于我](./docs/images/pc-about.png)
+**切换主题**
+![潘宗晖个人博客-pc端-切换主题](./docs/images/pc-toggle-theme.png)
+
+### 📱 移动端
+
+![潘宗晖个人博客-移动端](./docs/images/m-blog.png)
+
 ## 🛠️ 技术栈
 
-### 核心框架
+### 🔧 核心框架
 
 | 技术         | 版本   | 说明                  |
 | ------------ | ------ | --------------------- |
@@ -27,21 +57,21 @@
 | Vite         | 7.0.0  | 现代化构建工具        |
 | React Router | 6.30.1 | 客户端路由            |
 
-### 样式与UI
+### 🎨 样式与UI
 
 | 技术              | 版本   | 说明                   |
 | ----------------- | ------ | ---------------------- |
 | Tailwind CSS      | 4.1.11 | 原子化 CSS 框架        |
 | @tailwindcss/vite | 4.1.11 | Tailwind CSS Vite 插件 |
 
-### 状态管理
+### 📊 状态管理
 
 | 技术          | 版本  | 说明             |
 | ------------- | ----- | ---------------- |
 | Zustand       | 5.0.6 | 轻量级状态管理库 |
 | React Context | 内置  | 全局状态共享     |
 
-### 数据处理
+### 💾 数据处理
 
 | 技术                     | 版本   | 说明          |
 | ------------------------ | ------ | ------------- |
@@ -50,7 +80,7 @@
 | React Syntax Highlighter | 15.6.1 | 代码语法高亮  |
 | date-fns                 | 4.1.0  | 日期处理工具  |
 
-### 开发工具
+### 🔧 开发工具
 
 | 技术        | 版本   | 说明           |
 | ----------- | ------ | -------------- |
@@ -60,7 +90,7 @@
 | Commitizen  | 4.3.1  | 规范化提交信息 |
 | lint-staged | 16.1.2 | 暂存文件检查   |
 
-## 📁 项目结构
+## 🏗️ 项目结构
 
 ```
 blog/
@@ -106,12 +136,12 @@ blog/
 
 ## 🚀 快速开始
 
-### 环境要求
+### 📋 环境要求
 
 - Node.js >= 18
 - npm >= 9 或 yarn >= 1.22
 
-### 安装依赖
+### 📥 安装依赖
 
 ```bash
 npm install
@@ -119,7 +149,7 @@ npm install
 yarn install
 ```
 
-### 开发环境
+### 💻 开发环境
 
 ```bash
 # 开发模式启动
@@ -131,7 +161,7 @@ npm run prod
 
 访问 http://localhost:4000 查看应用
 
-### 构建部署
+### 🚢 构建部署
 
 ```bash
 # 开发环境构建
@@ -146,7 +176,7 @@ npm run preview
 
 ## 🔧 开发工具
 
-### 代码质量
+### 🧹 代码质量
 
 ```bash
 # ESLint 检查
@@ -162,7 +192,7 @@ npm run lint:fixAll
 npm run format
 ```
 
-### 提交规范
+### 📝 提交规范
 
 项目使用 Commitizen 进行规范化提交：
 
@@ -183,7 +213,7 @@ npm run commit
 
 ## 🌐 环境配置
 
-### 环境变量
+### ⚙️ 环境变量
 
 在项目根目录创建环境变量文件：
 
@@ -202,20 +232,20 @@ VITE_API_BASE_URL=https://your-production-api.com/api
 
 项目包含多项性能优化配置：
 
-### 代码分割
+### ✂️ 代码分割
 
 - 智能的依赖分包策略
 - React 核心库单独打包
 - 第三方库按功能分组
 - 小依赖合并打包
 
-### 压缩优化
+### 📉 压缩优化
 
 - 生产环境启用 Gzip 和 Brotli 压缩
 - Terser 代码压缩和混淆
 - 移除开发环境的 console 语句
 
-### 分析工具
+### 📊 分析工具
 
 - 构建产物可视化分析
 - Bundle 大小监控
@@ -229,20 +259,9 @@ VITE_API_BASE_URL=https://your-production-api.com/api
 - 手动切换主题模式
 - 主题状态持久化存储
 
-## 📱 响应式设计
+## 📜 许可证
 
-pc端与移动端展示各相不同：
-
-- **移动端**: <= 768px
-- **平板端**: 769px - 1024px
-- **桌面端**: > 1024px
-
-## 🔍 SEO 优化
-
-- 语义化 HTML 结构
-- 完善的 meta 标签
-- Open Graph 协议支持
-- 结构化数据标记
+本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情
 
 ## 👨‍💻 作者
 
