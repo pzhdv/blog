@@ -79,6 +79,6 @@ export const queryBlogAuthor = () =>
 export const queryBlogMission = () =>
   request.get<BlogMission>('/blogMission/blogMissionInfo')
 
-// 经历与成就
+// 工作经历
 export const queryJobExperienceList = () =>
   request.get<JobExperience[]>('/jobExperience/list')

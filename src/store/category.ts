@@ -205,14 +205,13 @@ const storeCreator: StateCreator<State & Actions> = (set, get) => ({
 })
 
 // 创建分类页面数据store（生产环境不加devtools）
-const useCategoryStore =
-  process.env.NODE_ENV === 'development'
-    ? create<State & Actions>()(
-        devtools(storeCreator, {
-          name: 'CategoryStore', // 开发环境显示名称
-          enabled: true, // 显式启用（可选）
-        }),
-      )
-    : create<State & Actions>()(storeCreator)
+const useCategoryStore = import.meta.env.DEV
+  ? create<State & Actions>()(
+      devtools(storeCreator, {
+        name: 'CategoryStore', // 开发环境显示名称
+        enabled: true, // 显式启用（可选）
+      }),
+    )
+  : create<State & Actions>()(storeCreator)
 
 export default useCategoryStore

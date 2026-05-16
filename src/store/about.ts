@@ -133,14 +133,13 @@ const storeCreator: StateCreator<State & Actions> = set => ({
 })
 
 // 创建关于页面数据store（生产环境不加devtools）
-const useAboutStore =
-  process.env.NODE_ENV === 'development'
-    ? create<State & Actions>()(
-        devtools(storeCreator, {
-          name: 'AboutStore', // 开发环境显示名称
-          enabled: true, // 显式启用（可选）
-        }),
-      )
-    : create<State & Actions>()(storeCreator)
+const useAboutStore = import.meta.env.DEV
+  ? create<State & Actions>()(
+      devtools(storeCreator, {
+        name: 'AboutStore', // 开发环境显示名称
+        enabled: true, // 显式启用（可选）
+      }),
+    )
+  : create<State & Actions>()(storeCreator)
 
 export default useAboutStore
