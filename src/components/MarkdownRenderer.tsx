@@ -205,7 +205,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
         ),
         li: ({ node, ...props }) => (
           <li
-            className="pl-1 sm:pl-2 text-sm sm:text-base leading-relaxed break-words"
+            className="pl-1 sm:pl-2 ml-1 text-sm sm:text-base leading-relaxed break-words"
             {...props}
           />
         ),
