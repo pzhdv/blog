@@ -225,12 +225,12 @@ export default function BlogCategoryPage() {
             className={`flex-1 flex items-center gap-2 p-2 rounded-lg text-left transition-colors text-gray-600
               ${
                 activeCategoryId === category.categoryId
-                  ? 'bg-purple-100 text-purple-600 dark:bg-purple-800/70 dark:text-purple-200'
+                  ? 'bg-blue-100 text-blue-600 dark:bg-blue-800/70 dark:text-blue-200'
                   : 'hover:bg-gray-100 dark:hover:bg-gray-700/50'
               }
               ${level > 0 ? 'text-sm' : 'font-medium'}
               dark:text-gray-200
-              ${activeCategoryId === category.categoryId ? 'bg-purple-100 text-purple-600 dark:bg-purple-800/70 dark:text-purple-200' : ''}`}
+              ${activeCategoryId === category.categoryId ? 'bg-blue-100 text-blue-600 dark:bg-blue-800/70 dark:text-blue-200' : ''}`}
           >
             <span className="dark:text-gray-400">
               <IconFont iconClass={category.iconClass} size={20} />
@@ -356,28 +356,50 @@ export default function BlogCategoryPage() {
             className="w-full md:w-32 h-48 md:h-24 object-cover rounded-lg"
           />
           <div className="flex-1">
-            <div className="flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2">
+            {/* 桌面端显示：日期 + 分类 | 移动端隐藏 */}
+            <div className="flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-2 hidden md:flex">
               <time>{article.createTime?.split(' ')[0]}</time>
               <div className="flex gap-1">
                 {article.articleCategoryList?.map((cat, index) => (
                   <span
                     key={index}
-                    className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-200 rounded-full text-xs"
+                    className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full text-xs"
                   >
                     {cat.categoryName}
                   </span>
                 ))}
               </div>
             </div>
+            {/* 移动端只显示：分类 */}
+            <div className="flex gap-1 text-sm mb-2 md:hidden">
+              {article.articleCategoryList?.map((cat, index) => (
+                <span
+                  key={index}
+                  className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-300 rounded-full text-xs"
+                >
+                  {cat.categoryName}
+                </span>
+              ))}
+            </div>
+
             <h3 className="text-lg font-semibold mb-2 dark:text-gray-200">
               {article.title}
             </h3>
             <p className="text-gray-600 dark:text-gray-300 line-clamp-2 mb-3">
               {article.excerpt}
             </p>
-            <button className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium transition-colors">
-              阅读全文 →
-            </button>
+
+            {/* 移动端：日期 + 阅读全文 */}
+            <div className="flex justify-between items-center w-full">
+              {/* 移动端日期 */}
+              <time className="text-sm text-gray-500 dark:text-gray-400 md:hidden">
+                {article.createTime?.split(' ')[0]}
+              </time>
+              {/* 阅读全文按钮 */}
+              <button className="ml-auto text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                阅读全文 →
+              </button>
+            </div>
           </div>
         </div>
       </article>

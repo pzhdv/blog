@@ -272,7 +272,7 @@ export default function BlogHomepage() {
               className={`px-3 py-1 rounded-full text-sm transition-colors
                       ${
                         activeTagId === tag.articleTagId
-                          ? 'bg-purple-100 text-purple-600 hover:bg-purple-200 dark:bg-purple-800 dark:text-purple-200 dark:hover:bg-purple-900'
+                          ? 'bg-blue-100 text-blue-600 hover:bg-blue-200 dark:bg-blue-800 dark:text-blue-200 dark:hover:bg-blue-900'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
                       }
                     `}

@@ -20,8 +20,8 @@ const PcPagination: FC<IProps> = ({ totalPage, currentPage, onClick }) => {
             className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors
           ${
             1 === currentPage
-              ? 'bg-purple-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-gray-600'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-600'
           }`}
           >
             1
@@ -55,8 +55,8 @@ const PcPagination: FC<IProps> = ({ totalPage, currentPage, onClick }) => {
                 className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors
               ${
                 page === currentPage
-                  ? 'bg-purple-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-gray-600'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-600'
               }`}
               >
                 {page}
@@ -80,8 +80,8 @@ const PcPagination: FC<IProps> = ({ totalPage, currentPage, onClick }) => {
             className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors
           ${
             totalPage === currentPage
-              ? 'bg-purple-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-purple-50 dark:hover:bg-gray-600'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-gray-600'
           }`}
           >
             {totalPage}
