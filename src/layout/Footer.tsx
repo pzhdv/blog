@@ -1,6 +1,8 @@
 import BeiAn from '@/assets/images/beian.png'
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear()
+
   return (
     <footer className="py-8  text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 ">
       <div className="max-w-6xl mx-auto px-4 text-center">
@@ -34,7 +36,7 @@ export default function Footer() {
             CSDN
           </a>
         </div>
-        <p className="text-base mb-2">© 2025 技术博客. 保留所有权利</p>
+        <p className="text-base mb-2">© {currentYear} PzhBlog. 保留所有权利</p>
         <div className="mt-1 flex flex-col sm:flex-row items-center justify-center gap-x-3 gap-y-1 text-sm">
           {/* ICP备案 */}
           <a
