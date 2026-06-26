@@ -57,6 +57,8 @@ export default function BlogCategoryPage() {
     activeCategoryId,
     setActiveCategoryId,
 
+    setCategoryIds,
+
     currentCategoryPathList,
     setCurrentCategoryPathList,
 
@@ -174,7 +176,8 @@ export default function BlogCategoryPage() {
     setCurrentCategoryPathList(fullPath)
     setActiveCategoryId(category.categoryId)
     const categoryIds = collectCategoryIds(category)
-    updateAndRefetch({ categoryIds, pageNum: 1 })
+    setCategoryIds(categoryIds) //把最新分类ID写入全局store
+    updateAndRefetch({ pageNum: 1 })
   }
 
   const handleLoadMore = async () => {

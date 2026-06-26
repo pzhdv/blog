@@ -43,6 +43,7 @@ type Actions = {
   initFetch: (parentId: number, queryParams: QueryParams) => void // 初始化查询 查询分类树 查询文章列表
 
   setActiveCategoryId: (activeCategoryId: number) => void // 设置当前激活分类的Id
+  setCategoryIds: (categoryIds: number[]) => void // 设置当前分类及子分类的id
 
   setCurrentCategoryPathList: (currentCategoryPathList: string[]) => void // 设置当前路径
   setExpandedCategories: (expandedCategories: Record<string, boolean>) => void // 设置展开/折叠的分类
@@ -83,6 +84,9 @@ const storeCreator: StateCreator<State & Actions> = (set, get) => ({
 
   setActiveCategoryId: activeCategoryId => {
     set({ activeCategoryId })
+  },
+  setCategoryIds: categoryIds => {
+    set({ categoryIds })
   },
   setCurrentCategoryPathList: currentCategoryPathList => {
     set({ currentCategoryPathList })
@@ -150,7 +154,11 @@ const storeCreator: StateCreator<State & Actions> = (set, get) => ({
     try {
       console.log('查询文章列表')
       set({ loading: true })
-      const res = await queryCategoryPageArticleList(queryParams)
+      // const res = await queryCategoryPageArticleList(queryParams)
+      // 读取全局保存的分类ID，覆盖组件传入参数，保证分类条件不丢失
+      const { categoryIds } = get()
+      const finalParams = { ...queryParams, categoryIds }
+      const res = await queryCategoryPageArticleList(finalParams)
       const currentPage = res.data.current //当前页
       const totalPage = res.data.pages //总页数
       const hasMore = res.data.current < res.data.pages // 判断是否还有更多数据
@@ -171,7 +179,7 @@ const storeCreator: StateCreator<State & Actions> = (set, get) => ({
 
   loadMore: async queryParams => {
     try {
-      const { loading, currentPage: pageNum } = get()
+      const { loading, currentPage: pageNum, categoryIds } = get()
       if (loading) {
         return
       }
@@ -182,6 +190,7 @@ const storeCreator: StateCreator<State & Actions> = (set, get) => ({
       const params = {
         ...queryParams,
         pageNum: pageNum + 1,
+        categoryIds,
       }
       const res = await queryCategoryPageArticleList(params)
       // 总页数
